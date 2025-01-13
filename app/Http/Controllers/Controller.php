@@ -35,6 +35,7 @@ class Controller extends BaseController
             $this->urlAllDept = env('URL_PORTAL')."department";
             $this->urlUser = env('URL_PORTAL')."user/get/";
             $this->urlAllUser = env('URL_PORTAL')."user";
+
             return $next($request);
         });
     }

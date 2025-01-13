@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\CpoVs;
 
+use App\Http\Controllers\BebanProdViewer;
 use App\Http\Controllers\Controller;
-use App\Models\BebanProd\BebanProd;
-use App\Models\BebanProd\BebanProdUraian;
 use App\Models\Master\Pmg;
+use App\Models\Master\TargetProduksiUraian;
+use App\Models\Target\TargetProduksi;
 use App\Services\LoggerService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\BebanProdViewer;
 
-
-class BebanProdController extends Controller
+class TargetProdController extends Controller
 {
     protected $bebanProdViewer;
 
@@ -35,7 +34,7 @@ class BebanProdController extends Controller
     public function index()
     {
         try {
-            $data = BebanProd::with('uraian', 'pmg')->get();
+            $data = TargetProduksi::with('uraian', 'pmg')->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);
@@ -55,7 +54,7 @@ class BebanProdController extends Controller
     public function show($id)
     {
         try {
-            $data = BebanProd::with('uraian', 'pmg')->findOrFail($id);
+            $data = TargetProduksi::with('uraian', 'pmg')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -81,7 +80,7 @@ class BebanProdController extends Controller
 
         try {
             $rules = [
-                'uraian_id' => 'required|exists:' . BebanProdUraian::class . ',id',
+                'uraian_id' => 'required|exists:' . TargetProduksiUraian::class . ',id',
                 'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
                 'value' => 'required|numeric'
@@ -96,19 +95,20 @@ class BebanProdController extends Controller
                 ], 400);
             }
 
-            $existingEntry = BebanProd::where('uraian_id', $request->uraian_id)
+            $existingEntry = TargetProduksi::where('uraian_id', $request->uraian_id)
                                         ->where('pmg_id', $request->pmg_id)
-                                        ->whereDate('tanggal', $request->tanggal)
+                                        ->whereYear('tanggal', date('Y', strtotime($request->tanggal)))
+                                        ->whereMonth('tanggal', date('m', strtotime($request->tanggal)))
                                         ->first();
 
             if ($existingEntry) {
                 return response()->json([
-                    'message' => 'Entry already exists for this uraian and date',
+                    'message' => 'Entry already exists for this uraian and month',
                     'success' => false,
                 ], 400);
             }
 
-            $data = BebanProd::create($request->all());
+            $data = TargetProduksi::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -136,7 +136,7 @@ class BebanProdController extends Controller
 
         try {
             $rules = [
-                'uraian_id' => 'required|exists:' . BebanProdUraian::class . ',id',
+                'uraian_id' => 'required|exists:' . TargetProduksiUraian::class . ',id',
                 'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
                 'value' => 'required|numeric'
@@ -151,18 +151,19 @@ class BebanProdController extends Controller
                 ], 400);
             }
 
-            $data = BebanProd::findOrFail($id);
+            $data = TargetProduksi::findOrFail($id);
             $oldData = $data->toArray();
 
-            $existingEntry = BebanProd::where('uraian_id', $request->uraian_id)
+            $existingEntry = TargetProduksi::where('uraian_id', $request->uraian_id)
                         ->where('pmg_id', $request->pmg_id)
-                        ->whereDate('tanggal', $request->tanggal)
+                        ->whereYear('tanggal', date('Y', strtotime($request->tanggal)))
+                        ->whereMonth('tanggal', date('m', strtotime($request->tanggal)))
                         ->where('id', '!=', $id)
                         ->first();
 
             if ($existingEntry) {
                 return response()->json([
-                    'message' => 'An entry already exists for this uraian and date',
+                    'message' => 'An entry already exists for this uraian and month',
                     'success' => false,
                 ], 400);
             }
@@ -198,7 +199,7 @@ class BebanProdController extends Controller
 
         try {
 
-            $data = $this->bebanProdViewer->indexPeriodBebanProd($tanggalAwal, $tanggalAkhir, $idPmg);
+            $data = $this->bebanProdViewer->indexPeriodTargetProd($tanggalAwal, $tanggalAkhir, $idPmg);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 

@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\BebanProd\BebanProdUraian;
+use App\Models\Master\TargetProduksiUraian;
 use App\Services\LoggerService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class BebanProdUraianController extends Controller
+class TargetProdUraianController extends Controller
 {
     private $messageFail = 'Something went wrong';
     private $messageMissing = 'Data not found in record';
@@ -22,7 +22,7 @@ class BebanProdUraianController extends Controller
     public function index()
     {
         try {
-            $data = BebanProdUraian::all();
+            $data = TargetProduksiUraian::all();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)
@@ -41,7 +41,7 @@ class BebanProdUraianController extends Controller
     public function show($id)
     {
         try {
-            $data = BebanProdUraian::findOrFail($id);
+            $data = TargetProduksiUraian::findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -68,7 +68,7 @@ class BebanProdUraianController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:beban_prod_uraian,nama',
+                'nama' => 'required|unique:target_produksi_uraian,nama',
             ]);
 
             if ($validator->fails()) {
@@ -79,7 +79,7 @@ class BebanProdUraianController extends Controller
                 ], 400);
             }
 
-            $data = BebanProdUraian::create($request->all());
+            $data = TargetProduksiUraian::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -110,7 +110,7 @@ class BebanProdUraianController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:beban_prod_uraian,nama,' . $id,
+                'nama' => 'required|unique:target_produksi_uraian,nama,' . $id,
             ]);
 
             if ($validator->fails()) {
@@ -120,7 +120,7 @@ class BebanProdUraianController extends Controller
                     'success' => false
                 ], 400);
             }
-            $data = BebanProdUraian::find($id);
+            $data = TargetProduksiUraian::find($id);
 
             if (!$data) {
 
