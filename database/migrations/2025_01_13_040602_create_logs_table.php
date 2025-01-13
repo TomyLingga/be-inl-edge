@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePmgTable extends Migration
+class CreateLogsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,14 @@ class CreatePmgTable extends Migration
      */
     public function up()
     {
-        Schema::create('pmg', function (Blueprint $table) {
+        Schema::create('logs', function (Blueprint $table) {
             $table->id();
+            $table->integer('user_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+            $table->string('action');
+            $table->json('old_data')->nullable();
+            $table->json('new_data')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +32,6 @@ class CreatePmgTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pmg');
+        Schema::dropIfExists('logs');
     }
 }
