@@ -11,39 +11,39 @@ class BebanProdViewer extends Controller
     public function indexPeriodBebanProd($tanggalAwal, $tanggalAkhir, $idPmg)
     {
         $data = BebanProd::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-                    ->where('pmg_id', $idPmg)
-                    ->whereIn('id', function ($query) use ($tanggalAwal, $tanggalAkhir, $idPmg) {
-                        $query->selectRaw('MAX(id)')
-                            ->from('beban_prod')
-                            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-                            ->where('pmg_id', $idPmg)
-                            ->groupBy('uraian_id');
-                    })
-                    ->with('uraian', 'pmg')
-                    ->get();
+            ->where('pmg_id', $idPmg)
+            ->with('uraian', 'pmg')
+            ->get();
 
         if ($data->isEmpty()) {
             return null;
         }
 
-        $totalCost = $data->sum('value');
-
-
-        $formattedData = $data->map(function ($item) {
+        $groupedData = $data->groupBy('uraian_id')->map(function ($items) {
             return [
-                'id' => $item->id,
-                'uraian' => $item->uraian->nama,
-                'value' => $item->value,
-                'pmg' => $item->pmg->nama,
+                'uraian' => $items->first()->uraian->nama,
+                'totalValue' => $items->sum('value'),
+                'pmg' => $items->first()->pmg->nama,
+                'details' => $items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'value' => $item->value,
+                    ];
+                }),
             ];
         });
 
+        $groupedData = $groupedData->values();
+
+        $totalCost = $groupedData->sum('totalValue');
+
         return [
             'totalCost' => $totalCost,
-            'detail' => $formattedData,
+            'detail' => $groupedData,
         ];
-
     }
+
+
 
     public function indexPeriodTargetProd($tanggalAwal, $tanggalAkhir, $idPmg)
     {
