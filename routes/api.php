@@ -17,6 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('jenis-laporan-prod', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'index']);
+Route::get('jenis-laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'show']);
+
+Route::get('laporan-prod', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'index']);
+Route::get('laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'show']);
+Route::post('laporan-prod/period', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'indexPeriod']);
+
 Route::get('uraian-beban-prod', [App\Http\Controllers\Master\BebanProdUraianController::class, 'index']);
 Route::get('uraian-beban-prod/get/{id}', [App\Http\Controllers\Master\BebanProdUraianController::class, 'show']);
 
@@ -47,6 +54,12 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //target
     Route::post('target-prod/add', [App\Http\Controllers\CpoVs\TargetProdController::class, 'store']);
     Route::post('target-prod/update/{id}', [App\Http\Controllers\CpoVs\TargetProdController::class, 'update']);
+    //jenis laporan prod
+    Route::post('jenis-laporan-prod/add', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'store']);
+    Route::post('jenis-laporan-prod/update/{id}', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'update']);
+    //laporan prod
+    Route::post('laporan-prod/add', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'store']);
+    Route::post('laporan-prod/update/{id}', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'update']);
 
 });
 

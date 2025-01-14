@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\BebanProd\BebanProd;
 use App\Models\Target\TargetProduksi;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class BebanProdViewer extends Controller
 {
+
     public function indexPeriodBebanProd($tanggalAwal, $tanggalAkhir, $idPmg)
     {
         $data = BebanProd::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
@@ -24,12 +26,24 @@ class BebanProdViewer extends Controller
                 'uraian' => $items->first()->uraian->nama,
                 'totalValue' => $items->sum('value'),
                 'pmg' => $items->first()->pmg->nama,
-                'details' => $items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'value' => $item->value,
-                    ];
-                }),
+                'details' => $items
+                    ->groupBy(function ($item) {
+                        // Parse tanggal as a Carbon instance and format it by year and month
+                        return Carbon::parse($item->tanggal)->format('Y-m');
+                    })
+                    ->map(function ($monthlyItems) {
+                        // Get the latest entry in the group
+                        return $monthlyItems->sortByDesc('tanggal')->first();
+                    })
+                    ->map(function ($item) {
+                        // Map the details for each group
+                        return [
+                            'id' => $item->id,
+                            'tanggal' => $item->tanggal,
+                            'value' => $item->value,
+                        ];
+                    })
+                    ->values(), // Convert to a plain array
             ];
         });
 
