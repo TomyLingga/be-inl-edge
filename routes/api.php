@@ -24,6 +24,16 @@ Route::get('laporan-prod', [App\Http\Controllers\LaporanProduksi\LaporanProduksi
 Route::get('laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'show']);
 Route::post('laporan-prod/period', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'indexPeriod']);
 
+Route::get('jenis-laporan-material', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'index']);
+Route::get('jenis-laporan-material/get/{id}', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'show']);
+
+Route::get('norma-material', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'index']);
+Route::get('norma-material/get/{id}', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'show']);
+
+Route::get('laporan-material', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'index']);
+Route::get('laporan-material/get/{id}', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'show']);
+Route::post('laporan-material/period', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'indexPeriod']);
+
 Route::get('uraian-beban-prod', [App\Http\Controllers\Master\BebanProdUraianController::class, 'index']);
 Route::get('uraian-beban-prod/get/{id}', [App\Http\Controllers\Master\BebanProdUraianController::class, 'show']);
 
@@ -60,6 +70,15 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //laporan prod
     Route::post('laporan-prod/add', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'store']);
     Route::post('laporan-prod/update/{id}', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'update']);
+    //jenis laporan material
+    Route::post('jenis-laporan-material/add', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'store']);
+    Route::post('jenis-laporan-material/update/{id}', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'update']);
+    //norma material
+    Route::post('norma-material/add', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'store']);
+    Route::post('norma-material/update/{id}', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'update']);
+    //laporan material
+    Route::post('laporan-material/add', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'store']);
+    Route::post('laporan-material/update/{id}', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'update']);
 
 });
 

@@ -1,28 +1,27 @@
 <?php
 
-namespace App\Http\Controllers\CpoVs;
+namespace App\Http\Controllers\LaporanMaterial;
 
-use App\Http\Controllers\BebanProdViewer;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\LaporanMaterialViewer;
+use App\Models\LaporanMaterial\LaporanMaterial;
+use App\Models\Master\ItemMaterial;
 use App\Models\Master\Pmg;
-use App\Models\Master\TargetProduksiUraian;
-use App\Models\Target\TargetProduksi;
 use App\Services\LoggerService;
-use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class TargetProdController extends Controller
+class LaporanMaterialController extends Controller
 {
-    protected $bebanProdViewer;
+    protected $laporanProdViewer;
 
-    public function __construct(BebanProdViewer $bebanProdViewer)
+    public function __construct(LaporanMaterialViewer $laporanProdViewer)
     {
         parent::__construct();
 
-        $this->bebanProdViewer = $bebanProdViewer;
+        $this->laporanProdViewer = $laporanProdViewer;
     }
 
     private $messageFail = 'Something went wrong';
@@ -35,7 +34,7 @@ class TargetProdController extends Controller
     public function index()
     {
         try {
-            $data = TargetProduksi::with('uraian', 'pmg')->get();
+            $data = LaporanMaterial::with('itemMaterial', 'pmg')->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);
@@ -55,7 +54,7 @@ class TargetProdController extends Controller
     public function show($id)
     {
         try {
-            $data = TargetProduksi::with('uraian', 'pmg')->findOrFail($id);
+            $data = LaporanMaterial::with('itemMaterial', 'pmg')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -81,10 +80,10 @@ class TargetProdController extends Controller
 
         try {
             $rules = [
-                'uraian_id' => 'required|exists:' . TargetProduksiUraian::class . ',id',
+                'item_material_id' => 'required|exists:' . ItemMaterial::class . ',id',
                 'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
-                'value' => 'required|numeric'
+                'qty' => 'required|numeric'
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -96,24 +95,19 @@ class TargetProdController extends Controller
                 ], 400);
             }
 
-            $tanggal = Carbon::parse($request->tanggal);
-            $year = $tanggal->year;
-            $month = $tanggal->month;
-
-            $existingEntry = TargetProduksi::where('uraian_id', $request->uraian_id)
+            $existingEntry = LaporanMaterial::where('item_material_id', $request->item_material_id)
                                         ->where('pmg_id', $request->pmg_id)
-                                        ->whereYear('tanggal', $year)
-                                        ->whereMonth('tanggal', $month)
+                                        ->whereDate('tanggal', $request->tanggal)
                                         ->first();
 
             if ($existingEntry) {
                 return response()->json([
-                    'message' => 'Entry already exists for this uraian and month',
+                    'message' => 'Entry already exists for this uraian and date',
                     'success' => false,
                 ], 400);
             }
 
-            $data = TargetProduksi::create($request->all());
+            $data = LaporanMaterial::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -141,10 +135,10 @@ class TargetProdController extends Controller
 
         try {
             $rules = [
-                'uraian_id' => 'required|exists:' . TargetProduksiUraian::class . ',id',
+                'item_material_id' => 'required|exists:' . ItemMaterial::class . ',id',
                 'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
-                'value' => 'required|numeric'
+                'qty' => 'required|numeric'
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -156,23 +150,18 @@ class TargetProdController extends Controller
                 ], 400);
             }
 
-            $data = TargetProduksi::findOrFail($id);
+            $data = LaporanMaterial::findOrFail($id);
             $oldData = $data->toArray();
 
-            $tanggal = Carbon::parse($request->tanggal);
-            $year = $tanggal->year;
-            $month = $tanggal->month;
-
-            $existingEntry = TargetProduksi::where('uraian_id', $request->uraian_id)
+            $existingEntry = LaporanMaterial::where('item_material_id', $request->item_material_id)
                         ->where('pmg_id', $request->pmg_id)
-                        ->whereYear('tanggal', $year)
-                        ->whereMonth('tanggal', $month)
+                        ->whereDate('tanggal', $request->tanggal)
                         ->where('id', '!=', $id)
                         ->first();
 
             if ($existingEntry) {
                 return response()->json([
-                    'message' => 'An entry already exists for this uraian and month',
+                    'message' => 'An entry already exists for this uraian and date',
                     'success' => false,
                 ], 400);
             }
@@ -208,7 +197,7 @@ class TargetProdController extends Controller
 
         try {
 
-            $data = $this->bebanProdViewer->indexPeriodTargetProd($tanggalAwal, $tanggalAkhir, $idPmg);
+            $data = $this->laporanProdViewer->indexPeriodLaporanProd($tanggalAwal, $tanggalAkhir, $idPmg);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 

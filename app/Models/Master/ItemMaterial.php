@@ -2,19 +2,19 @@
 
 namespace App\Models\Master;
 
-use App\Models\LaporanProduksi\LaporanProduksi;
+use App\Models\LaporanMaterial\LaporanMaterial;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ItemProduksi extends Model
+class ItemMaterial extends Model
 {
     use HasFactory;
 
-    protected $table = 'item_produksi';
+    protected $table = 'item_material';
 
     protected $fillable = [
         'name',
-        'jenis_laporan_id', //'bahan_olah', 'produk_hasil', 'others'
+        'jenis_laporan_id',
         'kategori',
     ];
 
@@ -22,12 +22,12 @@ class ItemProduksi extends Model
 
     public function jenisLaporan()
     {
-        return $this->belongsTo(JenisLaporanProduksi::class, 'jenis_laporan_id');
+        return $this->belongsTo(JenisLaporanMaterial::class, 'jenis_laporan_id');
     }
 
-    public function laporanProduksi()
+    public function laporanMaterials()
     {
-        return $this->hasMany(LaporanProduksi::class, 'item_produksi_id');
+        return $this->hasMany(LaporanMaterial::class, 'item_material_id');
     }
 
     public function logs()
