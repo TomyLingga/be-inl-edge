@@ -38,6 +38,12 @@ class LaporanMaterialViewer extends Controller
             return null;
         }
 
+        $totalOlahRefinery = $dataOlah
+            ->filter(function ($item) {
+                return $item->itemProduksi->kategori === 'bahan_olah' &&
+                    $item->itemProduksi->jenisLaporan->name === 'Refinery';
+            })
+            ->sum('qty');
 
         $groupedDataNorma = $norma->groupBy(function ($item) {
             return $item->itemMaterial->jenisLaporan->name ?? 'Unknown';
@@ -46,7 +52,7 @@ class LaporanMaterialViewer extends Controller
         $resultNorma = $groupedDataNorma->map(function ($items, $jenisLaporanName) {
             return [
                 'jenis_laporan' => $jenisLaporanName,
-                'items' => $items->groupBy('item_material_id')->map(function ($materialItems, $itemId) {
+                'materials' => $items->groupBy('item_material_id')->map(function ($materialItems, $itemId) {
                     return [
                         'item_material_id' => $itemId,
                         'name' => $materialItems->first()->itemMaterial->name,
@@ -69,7 +75,7 @@ class LaporanMaterialViewer extends Controller
             return $item->itemMaterial->jenisLaporan->name ?? 'Unknown'; // Group by jenisLaporan name
         });
 
-        $result = $groupedData->map(function ($items, $jenisLaporanName) {
+        $result = $groupedData->map(function ($items, $jenisLaporanName) use ($resultNorma, $totalOlahRefinery) {
             $conditionOlah = $items->first()->itemMaterial->jenisLaporan->condition_olah ?? 'sum';
 
             $kategoriData = $items->groupBy(function ($item) {
@@ -98,7 +104,7 @@ class LaporanMaterialViewer extends Controller
                 'jenis_laporan' => $jenisLaporanName,
                 'totalPemakaian' => $totalPemakaian,
                 'selisih' => $selisih,
-                'kategori_data' => $kategoriData->map(function ($kategoriItems, $kategoriName) use ($conditionOlah) {
+                'kategori_data' => $kategoriData->map(function ($kategoriItems, $kategoriName) use ($conditionOlah, $resultNorma, $totalOlahRefinery) {
                     $materials = $kategoriItems->groupBy(function ($item) {
                         return $item->itemMaterial->name;
                     });
@@ -106,12 +112,9 @@ class LaporanMaterialViewer extends Controller
                     $finalValue = 0;
                     if ($kategoriName === 'incoming') {
                         if ($materials->count() === 1) {
-                            // If only one material, use its totalQty
                             $finalValue = $materials->first()->sum('qty');
                         } else {
-                            // If more than one material, calculate based on condition_olah
                             $totalQtys = $materials->map->sum('qty')->values();
-
                             switch ($conditionOlah) {
                                 case 'use_higher':
                                     $finalValue = $totalQtys->max();
@@ -122,7 +125,7 @@ class LaporanMaterialViewer extends Controller
                                 case 'difference':
                                     $finalValue = $totalQtys->max() - $totalQtys->min();
                                     break;
-                                default: // 'sum' or any other case
+                                default:
                                     $finalValue = $totalQtys->sum();
                                     break;
                             }
@@ -134,10 +137,30 @@ class LaporanMaterialViewer extends Controller
                     return [
                         'kategori' => $kategoriName,
                         'finalValue' => $finalValue,
-                        'materials' => $materials->map(function ($materialItems, $materialName) {
+                        'materials' => $materials->map(function ($materialItems, $materialName) use ($resultNorma, $totalOlahRefinery) {
+                            $totalQty = $materialItems->sum('qty');
+
+                            // Find matching norma
+                            $matchingNorma = $resultNorma->flatMap(function ($norma) {
+                                return $norma['materials'];
+                            })->firstWhere('name', $materialName);
+
+                            $normaValue = $matchingNorma['totalQty'] ?? null;
+
+                            $usage = $totalOlahRefinery > 0 ? $totalQty / ($totalOlahRefinery / 1000) : 0;
+
+                            // Determine color
+                            $color = null;
+                            if (!is_null($normaValue)) {
+                                $color = $normaValue < $usage ? 'red' : 'green';
+                            }
+
                             return [
                                 'name' => $materialName,
-                                'totalQty' => $materialItems->sum('qty'),
+                                'totalQty' => $totalQty,
+                                'norma' => $normaValue,
+                                'usage' => round($usage, 6),
+                                'color' => $color,
                                 'detail' => $materialItems->map(function ($item) {
                                     return [
                                         'id' => $item->id,
@@ -145,16 +168,6 @@ class LaporanMaterialViewer extends Controller
                                         'tanggal' => $item->tanggal,
                                         'pmg_id' => $item->pmg_id,
                                         'qty' => $item->qty,
-                                        'item_material' => [
-                                            'id' => $item->itemMaterial->id,
-                                            'name' => $item->itemMaterial->name,
-                                            'kategori' => $item->itemMaterial->kategori,
-                                        ],
-                                        'pmg' => [
-                                            'id' => $item->pmg->id,
-                                            'nama' => $item->pmg->nama,
-                                            'lokasi' => $item->pmg->lokasi,
-                                        ],
                                     ];
                                 }),
                             ];
@@ -164,10 +177,11 @@ class LaporanMaterialViewer extends Controller
             ];
         });
 
-        return $dataOlah;
-        // return [
-        //     "laporan_material" => $result->values(),
-        //     "norma" => $resultNorma
-        // ];
+        return [
+            "totalOlahRefinery" => $totalOlahRefinery,
+            "laporan_material" => $result->values(),
+            "norma" => $resultNorma
+        ];
     }
+
 }
