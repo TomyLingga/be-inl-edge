@@ -135,6 +135,7 @@ class PmgController extends Controller
 
             $dataToUpdate = [
                 'nama' => $request->filled('nama') ? $request->nama : $data->nama,
+                'lokasi' => $request->filled('lokasi') ? $request->lokasi : $data->lokasi,
             ];
 
             $oldData = $data->toArray();

@@ -15,13 +15,13 @@ use Illuminate\Support\Facades\Validator;
 
 class LaporanMaterialController extends Controller
 {
-    protected $laporanProdViewer;
+    protected $laporanMaterialViewer;
 
-    public function __construct(LaporanMaterialViewer $laporanProdViewer)
+    public function __construct(LaporanMaterialViewer $laporanMaterialViewer)
     {
         parent::__construct();
 
-        $this->laporanProdViewer = $laporanProdViewer;
+        $this->laporanMaterialViewer = $laporanMaterialViewer;
     }
 
     private $messageFail = 'Something went wrong';
@@ -197,7 +197,7 @@ class LaporanMaterialController extends Controller
 
         try {
 
-            $data = $this->laporanProdViewer->indexPeriodLaporanProd($tanggalAwal, $tanggalAkhir, $idPmg);
+            $data = $this->laporanMaterialViewer->indexPeriodLaporanMaterial($tanggalAwal, $tanggalAkhir, $idPmg);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 

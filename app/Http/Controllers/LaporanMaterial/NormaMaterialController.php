@@ -149,10 +149,14 @@ class NormaMaterialController extends Controller
             $data = NormaMaterial::findOrFail($id);
             $oldData = $data->toArray();
 
+            $tanggal = Carbon::parse($request->tanggal);
+            $year = $tanggal->year;
+            $month = $tanggal->month;
+
             $existingEntry = NormaMaterial::where('item_material_id', $request->item_material_id)
                         ->where('pmg_id', $request->pmg_id)
-                        ->whereYear('tanggal', date('Y', strtotime($request->tanggal)))
-                        ->whereMonth('tanggal', date('m', strtotime($request->tanggal)))
+                        ->whereYear('tanggal', $year)
+                        ->whereMonth('tanggal', $month)
                         ->where('id', '!=', $id)
                         ->first();
 

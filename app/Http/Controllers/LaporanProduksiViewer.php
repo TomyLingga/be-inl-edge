@@ -27,12 +27,10 @@ class LaporanProduksiViewer extends Controller
                 return $laporan->itemProduksi->kategori ?? 'Unknown';
             });
 
-            $finalValues = [
-                'bahan_olah' => 0,
-                'produk_hasil' => 0,
-            ];
+            $finalValueBahanOlah = 0;
+            $finalValueProdukHasil = 0;
 
-            $kategoriData = $kategoriGrouped->map(function ($kategoriGroup, $kategoriName) use (&$finalValues) {
+            $kategoriData = $kategoriGrouped->map(function ($kategoriGroup, $kategoriName) use (&$finalValueBahanOlah, &$finalValueProdukHasil) {
                 $items = $kategoriGroup->groupBy(function ($laporan) {
                     return $laporan->itemProduksi->name;
                 })->map(function ($itemGroup, $itemName) {
@@ -66,30 +64,71 @@ class LaporanProduksiViewer extends Controller
                 })->values();
 
                 if ($kategoriName === 'bahan_olah') {
-                    $finalValues['bahan_olah'] = $items->sum('totalQty');
-                } elseif ($kategoriName === 'produk_hasil') {
-                    $finalValues['produk_hasil'] = $items->sum('totalQty');
+                    $conditionOlah = $kategoriGroup->first()->itemProduksi->jenisLaporan->condition_olah ?? 'sum';
 
-                    $bahanOlahValue = $finalValues['bahan_olah'];
-                    $items = $items->map(function ($item) use ($bahanOlahValue) {
-                        $item['yieldPercentage'] = $bahanOlahValue > 0
-                            ? number_format(($item['totalQty'] / $bahanOlahValue) * 100, 2)
-                            : 0;
+                    if (count($items) > 1) {
+                        $values = $items->pluck('totalQty')->all();
+                        switch ($conditionOlah) {
+                            case 'sum':
+                                $finalValueBahanOlah = array_sum($values);
+                                break;
+                            case 'use_higher':
+                                $finalValueBahanOlah = max($values);
+                                break;
+                            case 'use_lower':
+                                $finalValueBahanOlah = min($values);
+                                break;
+                            case 'difference':
+                                $finalValueBahanOlah = abs($values[0] - $values[1]); // Assuming only two items for difference
+                                break;
+                            default:
+                                $finalValueBahanOlah = null;
+                                break;
+                        }
+                    } else {
+                        $finalValueBahanOlah = $items->first()['totalQty'];
+                    }
+
+                    return [
+                        'kategori' => $kategoriName,
+                        'condition_olah' => $conditionOlah,
+                        'finalValue' => $finalValueBahanOlah,
+                        'items' => $items,
+                    ];
+                }
+
+                if ($kategoriName === 'produk_hasil') {
+                    $finalValueProdukHasil = $items->sum('totalQty');
+                    $items = $items->map(function ($item) use ($finalValueBahanOlah) {
+                        $item['yieldPercentage'] = $finalValueBahanOlah > 0 ? ($item['totalQty'] / $finalValueBahanOlah) * 100 : 0;
                         return $item;
                     });
+
+                    return [
+                        'kategori' => $kategoriName,
+                        'finalValue' => $finalValueProdukHasil,
+                        'items' => $items,
+                    ];
+                }
+
+                if ($kategoriName === 'others') {
+                    $finalValueProdukHasil = $items->sum('totalQty');
+
+                    return [
+                        'kategori' => $kategoriName,
+                        'finalValue' => $finalValueProdukHasil,
+                        'items' => $items,
+                    ];
                 }
 
                 return [
                     'kategori' => $kategoriName,
-                    'finalValue' => $kategoriName === 'produk_hasil' || $kategoriName === 'bahan_olah' ? $finalValues[$kategoriName] : null,
                     'items' => $items,
                 ];
             });
 
-            $losses = $finalValues['bahan_olah'] - $finalValues['produk_hasil'];
-            $lossesPercentage = $finalValues['bahan_olah'] > 0
-                ? number_format(($losses / $finalValues['bahan_olah']) * 100, 2)
-                : 0;
+            $losses = $finalValueBahanOlah - $finalValueProdukHasil;
+            $lossesPercentage = $finalValueBahanOlah > 0 ? ($losses / $finalValueBahanOlah) * 100 : 0;
 
             return [
                 'jenis_laporan' => $jenisLaporanName,
@@ -101,5 +140,7 @@ class LaporanProduksiViewer extends Controller
 
         return $result;
     }
+
+
 
 }
