@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('kategori-cashflowmov', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'index']);
+Route::get('kategori-cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'show']);
+
 Route::get('jenis-laporan-prod', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'index']);
 Route::get('jenis-laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'show']);
 
@@ -47,11 +50,21 @@ Route::post('beban-prod/period', [App\Http\Controllers\CpoVs\BebanProdController
 Route::get('target-prod', [App\Http\Controllers\CpoVs\TargetProdController::class, 'index']);
 Route::get('target-prod/get/{id}', [App\Http\Controllers\CpoVs\TargetProdController::class, 'show']);
 Route::post('target-prod/period', [App\Http\Controllers\CpoVs\TargetProdController::class, 'indexPeriod']);
+//cashflowmovement
+Route::get('cashflowmov', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'index']);
+Route::get('cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'show']);
+Route::post('cashflowmov/period', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'indexPeriod']);
 
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
+    //Kategori Cash flow movement
+    Route::post('kategori-cashflowmov/add', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'store']);
+    Route::post('kategori-cashflowmov/update/{id}', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'update']);
+    // Cash flow movement
+    Route::post('cashflowmov/add', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'store']);
+    Route::post('cashflowmov/update/{id}', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'update']);
     //Beban Prod Uraian
     Route::post('uraian-beban-prod/add', [App\Http\Controllers\Master\BebanProdUraianController::class, 'store']);
     Route::post('uraian-beban-prod/update/{id}', [App\Http\Controllers\Master\BebanProdUraianController::class, 'update']);

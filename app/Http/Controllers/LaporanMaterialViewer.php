@@ -35,15 +35,15 @@ class LaporanMaterialViewer extends Controller
             ->get();
 
         if ($dataOlah->isEmpty()) {
-            return null;
+            $totalOlahRefinery = 1;
+        }else{
+            $totalOlahRefinery = $dataOlah
+                ->filter(function ($item) {
+                    return $item->itemProduksi->kategori === 'bahan_olah' &&
+                        $item->itemProduksi->jenisLaporan->name === 'Refinery';
+                })
+                ->sum('qty');
         }
-
-        $totalOlahRefinery = $dataOlah
-            ->filter(function ($item) {
-                return $item->itemProduksi->kategori === 'bahan_olah' &&
-                    $item->itemProduksi->jenisLaporan->name === 'Refinery';
-            })
-            ->sum('qty');
 
         $groupedDataNorma = $norma->groupBy(function ($item) {
             return $item->itemMaterial->jenisLaporan->name ?? 'Unknown';
