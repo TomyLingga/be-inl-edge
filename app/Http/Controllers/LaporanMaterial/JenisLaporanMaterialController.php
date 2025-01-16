@@ -44,7 +44,7 @@ class JenisLaporanMaterialController extends Controller
         try {
             $data = JenisLaporanMaterial::with('items')->findOrFail($id);
 
-            $data->history = $this->formatLogs($data->logs);
+            $data->history = $this->formatLogsForMultiple($data->logs);
             unset($data->logs);
 
             return response()->json([

@@ -44,7 +44,7 @@ class JenisLaporanProduksiController extends Controller
         try {
             $data = JenisLaporanProduksi::with('itemProduksi')->findOrFail($id);
 
-            $data->history = $this->formatLogs($data->logs);
+            $data->history = $this->formatLogsForMultiple($data->logs);
             unset($data->logs);
 
             return response()->json([
