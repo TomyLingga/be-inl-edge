@@ -47,7 +47,7 @@ class PayStatusCashFlowScheduleController extends Controller
             unset($data->logs);
 
             return response()->json([
-                'pmg' => $data,
+                'data' => $data,
                 'message' => $this->messageSuccess,
                 'code' => 200
             ], 200);
@@ -68,7 +68,7 @@ class PayStatusCashFlowScheduleController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pay_status_cash_flow_schedule,nama',
+                'name' => 'required|unique:pay_status_cash_flow_schedule,name',
                 'state' => 'required|boolean',
                 'remark' => 'required',
             ]);
@@ -112,8 +112,9 @@ class PayStatusCashFlowScheduleController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama,' . $id,
-                'lokasi' => 'required',
+                'name' => 'required|unique:pay_status_cash_flow_schedule,name',
+                'state' => 'required|boolean',
+                'remark' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -135,8 +136,9 @@ class PayStatusCashFlowScheduleController extends Controller
             }
 
             $dataToUpdate = [
-                'nama' => $request->filled('nama') ? $request->nama : $data->nama,
-                'lokasi' => $request->filled('lokasi') ? $request->lokasi : $data->lokasi,
+                'name' => $request->filled('name') ? $request->name : $data->name,
+                'state' => $request->filled('state') ? $request->state : $data->state,
+                'remark' => $request->filled('remark') ? $request->remark : $data->remark,
             ];
 
             $oldData = $data->toArray();

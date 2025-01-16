@@ -20,6 +20,16 @@ Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 's
 Route::get('kategori-cashflowmov', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'index']);
 Route::get('kategori-cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'show']);
 
+Route::get('kategori-cashflowschedlue', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'index']);
+Route::get('kategori-cashflowschedlue/get/{id}', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'show']);
+
+Route::get('paystatus-cashflowschedlue', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'index']);
+Route::get('paystatus-cashflowschedlue/get/{id}', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'show']);
+//beban
+Route::get('cashflowschedlue', [App\Http\Controllers\CashFlowSchedule\CashFlowScheduleController::class, 'index']);
+Route::get('cashflowschedlue/get/{id}', [App\Http\Controllers\CashFlowSchedule\CashFlowScheduleController::class, 'show']);
+Route::post('cashflowschedlue/period', [App\Http\Controllers\CashFlowSchedule\CashFlowScheduleController::class, 'indexPeriod']);
+
 Route::get('jenis-laporan-prod', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'index']);
 Route::get('jenis-laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'show']);
 
@@ -65,6 +75,15 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     // Cash flow movement
     Route::post('cashflowmov/add', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'store']);
     Route::post('cashflowmov/update/{id}', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'update']);
+    //Kategori Cash flow schedule
+    Route::post('kategori-cashflowschedlue/add', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'store']);
+    Route::post('kategori-cashflowschedlue/update/{id}', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'update']);
+    // Pay Status Cash flow schedule
+    Route::post('paystatus-cashflowschedlue/add', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'store']);
+    Route::post('paystatus-cashflowschedlue/update/{id}', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'update']);
+    // Cash flow schedule
+    Route::post('cashflowschedlue/add', [App\Http\Controllers\CashFlowSchedule\CashFlowScheduleController::class, 'store']);
+    Route::post('cashflowschedlue/update/{id}', [App\Http\Controllers\CashFlowSchedule\CashFlowScheduleController::class, 'update']);
     //Beban Prod Uraian
     Route::post('uraian-beban-prod/add', [App\Http\Controllers\Master\BebanProdUraianController::class, 'store']);
     Route::post('uraian-beban-prod/update/{id}', [App\Http\Controllers\Master\BebanProdUraianController::class, 'update']);

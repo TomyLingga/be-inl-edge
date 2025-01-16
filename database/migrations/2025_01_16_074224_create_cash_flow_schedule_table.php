@@ -22,7 +22,7 @@ class CreateCashFlowScheduleTable extends Migration
         Schema::create('pay_status_cash_flow_schedule', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('boolean');
+            $table->boolean('state');
             $table->string('remark')->nullable();
             $table->timestamps();
         });
