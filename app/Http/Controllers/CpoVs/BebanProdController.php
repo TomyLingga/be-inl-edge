@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\BebanProdViewer;
-
+use Carbon\Carbon;
 
 class BebanProdController extends Controller
 {
@@ -96,9 +96,14 @@ class BebanProdController extends Controller
                 ], 400);
             }
 
+            $tanggal = Carbon::parse($request->tanggal);
+            $year = $tanggal->year;
+            $month = $tanggal->month;
+
             $existingEntry = BebanProd::where('uraian_id', $request->uraian_id)
                                         ->where('pmg_id', $request->pmg_id)
-                                        ->whereDate('tanggal', $request->tanggal)
+                                        ->whereYear('tanggal', $year)
+                                        ->whereMonth('tanggal', $month)
                                         ->first();
 
             if ($existingEntry) {
@@ -154,9 +159,14 @@ class BebanProdController extends Controller
             $data = BebanProd::findOrFail($id);
             $oldData = $data->toArray();
 
+            $tanggal = Carbon::parse($request->tanggal);
+            $year = $tanggal->year;
+            $month = $tanggal->month;
+
             $existingEntry = BebanProd::where('uraian_id', $request->uraian_id)
                         ->where('pmg_id', $request->pmg_id)
-                        ->whereDate('tanggal', $request->tanggal)
+                        ->whereYear('tanggal', $year)
+                        ->whereMonth('tanggal', $month)
                         ->where('id', '!=', $id)
                         ->first();
 

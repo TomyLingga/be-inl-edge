@@ -27,60 +27,61 @@ class BebanProdViewer extends Controller
             ->with(['itemProduksi.jenisLaporan', 'pmg'])
             ->get();
 
-        $totalOlahRefinery = $dataOlah->isEmpty() ? 1 : $dataOlah
-            ->filter(function ($item) {
-                return $item->itemProduksi->kategori === 'bahan_olah' &&
-                    $item->itemProduksi->jenisLaporan->name === 'Refinery';
-            })
-            ->sum('qty');
-
-        // Filter for the latest data by month
-        $latestData = $data->groupBy('uraian_id')->map(function ($items) {
-            return $items
-                ->groupBy(function ($item) {
-                    return Carbon::parse($item->tanggal)->format('Y-m');
+        if ($dataOlah->isEmpty()) {
+            $totalOlahRefinery = 1;
+        }else{
+            $totalOlahRefinery = $dataOlah
+                ->filter(function ($item) {
+                    return $item->itemProduksi->kategori === 'bahan_olah' &&
+                        $item->itemProduksi->jenisLaporan->name === 'Refinery';
                 })
-                ->map(function ($monthlyItems) {
-                    return $monthlyItems->sortByDesc('tanggal')->first(); // Get the latest entry for each month
-                });
-        });
+                ->sum('qty');
+        }
 
-        // Flatten the grouped data to calculate totals
-        $flatData = $latestData->flatMap(function ($monthlyItems) {
-            return $monthlyItems;
-        });
 
-        $totalCost = $flatData->sum('value');
+        // Calculate totalCost
+        $totalCost = $data->sum('value');
+
+        // Calculate totalHargaSatuan
         $totalHargaSatuan = $totalCost / $totalOlahRefinery;
 
-        $groupedData = $latestData->map(function ($monthlyItems) use ($totalOlahRefinery) {
-            $totalValue = $monthlyItems->sum('value');
+        $groupedData = $data->groupBy('uraian_id')->map(function ($items) use ($totalOlahRefinery) {
+            $totalValue = $items->sum('value');
             $hargaSatuan = $totalValue / $totalOlahRefinery;
 
             return [
-                'uraian' => $monthlyItems->first()->uraian->nama,
+                'uraian' => $items->first()->uraian->nama,
                 'totalValue' => $totalValue,
-                'hargaSatuan' => $hargaSatuan,
-                'pmg' => $monthlyItems->first()->pmg->nama,
-                'details' => $monthlyItems->map(function ($item) use ($hargaSatuan) {
-                    return [
-                        'id' => $item->id,
-                        'tanggal' => $item->tanggal,
-                        'value' => $item->value,
-                        'hargaSatuan' => $hargaSatuan,
-                    ];
-                })->values(),
+                'hargaSatuan' => $hargaSatuan, // Add hargaSatuan
+                'pmg' => $items->first()->pmg->nama,
+                'details' => $items
+                    ->groupBy(function ($item) {
+                        return Carbon::parse($item->tanggal)->format('Y-m');
+                    })
+                    ->map(function ($monthlyItems) {
+                        return $monthlyItems->sortByDesc('tanggal')->first();
+                    })
+                    ->map(function ($item) use ($hargaSatuan) {
+                        return [
+                            'id' => $item->id,
+                            'tanggal' => $item->tanggal,
+                            'value' => $item->value,
+                            'hargaSatuan' => $hargaSatuan, // Add hargaSatuan for each detail
+                        ];
+                    })
+                    ->values(),
             ];
         });
+
+        $groupedData = $groupedData->values();
 
         return [
             'cpoOlah' => $totalOlahRefinery,
             'totalCost' => $totalCost,
-            'totalHargaSatuan' => $totalHargaSatuan,
-            'detail' => $groupedData->values(),
+            'totalHargaSatuan' => $totalHargaSatuan, // Add totalHargaSatuan to the response
+            'detail' => $groupedData,
         ];
     }
-
 
 
     public function indexPeriodTargetProd($tanggalAwal, $tanggalAkhir, $idPmg)
