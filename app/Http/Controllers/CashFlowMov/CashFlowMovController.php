@@ -202,13 +202,12 @@ class CashFlowMovController extends Controller
 
     public function indexPeriod(Request $request)
     {
-        $tanggalAwal = $request->tanggalAwal;
         $tanggalAkhir = $request->tanggalAkhir;
         $idPmg = $request->idPmg;
 
         try {
 
-            $data = $this->cashFlowMovementViewer->indexPeriodCashFlowMovement($tanggalAwal, $tanggalAkhir, $idPmg);
+            $data = $this->cashFlowMovementViewer->indexPeriodCashFlowMovement($tanggalAkhir, $idPmg);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 
