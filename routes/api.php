@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('source-cpo', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'index']);
+Route::get('source-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'show']);
+
+Route::get('target-income-cpo', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'index']);
+Route::get('target-income-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'show']);
+
 Route::get('matauang', [App\Http\Controllers\Kurs\MataUangController::class, 'index']);
 Route::get('matauang/get/{id}', [App\Http\Controllers\Kurs\MataUangController::class, 'show']);
 
@@ -32,6 +38,10 @@ Route::get('kategori-profitability/get/{id}', [App\Http\Controllers\Profitabilit
 Route::get('profitability', [App\Http\Controllers\Profitability\ProfitablityController::class, 'index']);
 Route::get('profitability/get/{id}', [App\Http\Controllers\Profitability\ProfitablityController::class, 'show']);
 Route::post('profitability/period', [App\Http\Controllers\Profitability\ProfitablityController::class, 'indexPeriod']);
+
+Route::get('income-cpo', [App\Http\Controllers\IncomingCpo\IncomingCpoController::class, 'index']);
+Route::get('income-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\IncomingCpoController::class, 'show']);
+Route::post('income-cpo/period', [App\Http\Controllers\IncomingCpo\IncomingCpoController::class, 'indexPeriod']);
 
 Route::get('paystatus-cashflowschedlue', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'index']);
 Route::get('paystatus-cashflowschedlue/get/{id}', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'show']);
@@ -87,6 +97,15 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
+    //source cpo
+    Route::post('source-cpo/add', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'store']);
+    Route::post('source-cpo/update/{id}', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'update']);
+    //target incoming cpo
+    Route::post('target-income-cpo/add', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'store']);
+    Route::post('target-income-cpo/update/{id}', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'update']);
+    //incoming cpo
+    Route::post('income-cpo/add', [App\Http\Controllers\IncomingCpo\IncomingCpoController::class, 'store']);
+    Route::post('income-cpo/update/{id}', [App\Http\Controllers\IncomingCpo\IncomingCpoController::class, 'update']);
     //matauang
     Route::post('matauang/add', [App\Http\Controllers\Kurs\MataUangController::class, 'store']);
     Route::post('matauang/update/{id}', [App\Http\Controllers\Kurs\MataUangController::class, 'update']);

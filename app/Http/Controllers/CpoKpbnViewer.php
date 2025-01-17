@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\CPOKpbn\CpoKpbn;
+use App\Models\IncomingCpo\IncomingCpo;
+use App\Models\IncomingCpo\TargetIncomingCpo;
 use App\Models\Kurs\Kurs;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -26,6 +28,7 @@ class CpoKpbnViewer extends Controller
         }
 
         $averageTotal = round($data->avg('value'), 2);
+        $averageKurs = round($kurs->avg('value'), 2);
 
         $latestCpoData = $data->sortByDesc('tanggal')->first();
         $latestCpoValue = $latestCpoData->value;
@@ -83,12 +86,11 @@ class CpoKpbnViewer extends Controller
 
         $years = array_values($result);
 
-        // Calculate overall averageAsingTotal
-        $averageAsingTotal = round(collect($totalAsingValues)->avg(), 2);
 
         return [
             'averageTotal' => $averageTotal,
-            'averageAsingTotal' => $averageAsingTotal,
+            'averageAsingTotal' => $averageTotal/$averageKurs*1000,
+            'averageKurs' => $averageKurs,
             'latestCpoValue' => $latestCpoValue,
             'latestCpoDate' => $latestCpoDate,
             'latestKursValue' => $latestKursValue,
@@ -112,6 +114,82 @@ class CpoKpbnViewer extends Controller
 
         return $data;
     }
+
+    public function indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir, $idMataUang)
+    {
+        $data = IncomingCpo::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->with('source') // Load the related source
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        if ($data->isEmpty()) {
+            return response()->json([
+                'data' => null,
+                'message' => 'No data found for the given period.',
+            ]);
+        }
+
+        $target = TargetIncomingCpo::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->get()
+            ->groupBy(function ($item) {
+                return Carbon::parse($item->tanggal)->format('Y-m');
+            });
+
+        $groupedData = $data->groupBy(function ($item) {
+            return Carbon::parse($item->tanggal)->format('Y-m');
+        });
+
+        $totalQty = 0;
+        $totalValue = 0;
+
+        $result = [];
+        foreach ($groupedData as $key => $items) {
+            [$year, $month] = explode('-', $key);
+
+            $monthQty = $items->sum('qty');
+            $monthValue = $items->sum(function ($item) {
+                return $item->qty * $item->harga;
+            });
+
+            $targetForMonth = optional($target->get($key))->sum('qty'); // Get target for this month
+            $remaining = $targetForMonth - $monthQty;
+
+            $totalQty += $monthQty;
+            $totalValue += $monthValue;
+
+            $result[] = [
+                'year' => (int) $year,
+                'month' => (int) $month,
+                'monthQty' => $monthQty,
+                'monthValue' => $monthValue,
+                'target' => $targetForMonth,
+                'remaining' => $remaining,
+                'detail' => $items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'tanggal' => $item->tanggal,
+                        'qty' => $item->qty,
+                        'harga' => $item->harga,
+                        'value' => $item->qty * $item->harga,
+                        'source_id' => $item->source_id,
+                        'created_at' => $item->created_at,
+                        'updated_at' => $item->updated_at,
+                        'source' => [
+                            'id' => $item->source->id,
+                            'name' => $item->source->name,
+                        ],
+                    ];
+                }),
+            ];
+        }
+
+        return [
+            'totalQty' => $totalQty,
+            'totalValue' => $totalValue,
+            'data' => $result,
+        ];
+    }
+
 
 
 

@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Master;
+namespace App\Http\Controllers\IncomingCpo;
 
 use App\Http\Controllers\Controller;
-use App\Models\Master\Pmg;
+use App\Models\IncomingCpo\SourceIncomingCpo;
 use App\Services\LoggerService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class PmgController extends Controller
+class SourcingIncomingCpoController extends Controller
 {
     private $messageFail = 'Something went wrong';
     private $messageMissing = 'Data not found in record';
@@ -22,7 +22,7 @@ class PmgController extends Controller
     public function index()
     {
         try {
-            $data = Pmg::all();
+            $data = SourceIncomingCpo::all();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)
@@ -41,7 +41,7 @@ class PmgController extends Controller
     public function show($id)
     {
         try {
-            $data = Pmg::findOrFail($id);
+            $data = SourceIncomingCpo::findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -68,8 +68,7 @@ class PmgController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama',
-                'lokasi' => 'required',
+                'name' => 'required|unique:source_incoming_cpo,name',
             ]);
 
             if ($validator->fails()) {
@@ -80,7 +79,7 @@ class PmgController extends Controller
                 ], 400);
             }
 
-            $data = Pmg::create($request->all());
+            $data = SourceIncomingCpo::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -111,7 +110,7 @@ class PmgController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama,' . $id,
+                'name' => 'required|unique:pmg,name,' . $id,
                 'lokasi' => 'required',
             ]);
 
@@ -122,7 +121,7 @@ class PmgController extends Controller
                     'success' => false
                 ], 400);
             }
-            $data = Pmg::find($id);
+            $data = SourceIncomingCpo::find($id);
 
             if (!$data) {
 
@@ -134,8 +133,7 @@ class PmgController extends Controller
             }
 
             $dataToUpdate = [
-                'nama' => $request->filled('nama') ? $request->nama : $data->nama,
-                'lokasi' => $request->filled('lokasi') ? $request->lokasi : $data->lokasi,
+                'name' => $request->filled('name') ? $request->name : $data->name,
             ];
 
             $oldData = $data->toArray();

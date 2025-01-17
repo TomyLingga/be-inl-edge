@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Master;
+namespace App\Http\Controllers\IncomingCpo;
 
 use App\Http\Controllers\Controller;
-use App\Models\Master\Pmg;
+use App\Models\IncomingCpo\TargetIncomingCpo;
 use App\Services\LoggerService;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class PmgController extends Controller
+class TargetIncomingCpoController extends Controller
 {
     private $messageFail = 'Something went wrong';
     private $messageMissing = 'Data not found in record';
@@ -22,17 +23,18 @@ class PmgController extends Controller
     public function index()
     {
         try {
-            $data = Pmg::all();
+            $data = TargetIncomingCpo::all();
 
-            return $data->isEmpty()
-                ? response()->json(['message' => $this->messageMissing], 401)
-                : response()->json(['data' => $data, 'message' => $this->messageAll], 200);
+            if ($data->isEmpty()) {
+                return response()->json(['message' => $this->messageMissing], 401);
+            }
+
+            return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
         } catch (QueryException $e) {
             return response()->json([
                 'message' => $this->messageFail,
                 'err' => $e->getTrace()[0],
                 'errMsg' => $e->getMessage(),
-                // 'code' => 500,
                 'success' => false,
             ], 500);
         }
@@ -41,7 +43,7 @@ class PmgController extends Controller
     public function show($id)
     {
         try {
-            $data = Pmg::findOrFail($id);
+            $data = TargetIncomingCpo::findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -56,7 +58,6 @@ class PmgController extends Controller
                 'message' => $this->messageFail,
                 'err' => $e->getTrace()[0],
                 'errMsg' => $e->getMessage(),
-                // 'code' => 500,
                 'success' => false,
             ], 500);
         }
@@ -67,20 +68,36 @@ class PmgController extends Controller
         DB::beginTransaction();
 
         try {
-            $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama',
-                'lokasi' => 'required',
-            ]);
+            $rules = [
+                'tanggal' => 'required|date',
+                'qty' => 'required|numeric'
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([
                     'message' => $validator->errors(),
-                    // 'code' => 400,
                     'success' => false,
                 ], 400);
             }
 
-            $data = Pmg::create($request->all());
+            $tanggal = Carbon::parse($request->tanggal);
+            $year = $tanggal->year;
+            $month = $tanggal->month;
+
+            $existingEntry = TargetIncomingCpo::whereYear('tanggal', $year)
+                                        ->whereMonth('tanggal', $month)
+                                        ->first();
+
+            if ($existingEntry) {
+                return response()->json([
+                    'message' => 'Entry already exists for this month',
+                    'success' => false,
+                ], 400);
+            }
+
+            $data = TargetIncomingCpo::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -89,7 +106,6 @@ class PmgController extends Controller
             return response()->json([
                 'data' => $data,
                 'message' => $this->messageCreate,
-                // 'code' => 200,
                 'success' => true,
             ], 200);
         } catch (\Exception $e) {
@@ -98,7 +114,6 @@ class PmgController extends Controller
                 'message' => $this->messageFail,
                 'err' => $e->getTrace()[0],
                 'errMsg' => $e->getMessage(),
-                // 'code' => 500,
                 'success' => false,
             ], 500);
         }
@@ -109,37 +124,40 @@ class PmgController extends Controller
         DB::beginTransaction();
 
         try {
+            $rules = [
+                'tanggal' => 'required|date',
+                'qty' => 'required|numeric'
+            ];
 
-            $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama,' . $id,
-                'lokasi' => 'required',
-            ]);
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([
                     'message' => $validator->errors(),
-                    // 'code' => 400,
-                    'success' => false
+                    'success' => false,
                 ], 400);
             }
-            $data = Pmg::find($id);
 
-            if (!$data) {
+            $data = TargetIncomingCpo::findOrFail($id);
+            $oldData = $data->toArray();
 
+            $tanggal = Carbon::parse($request->tanggal);
+            $year = $tanggal->year;
+            $month = $tanggal->month;
+
+            $existingEntry = TargetIncomingCpo::whereYear('tanggal', $year)
+                        ->whereMonth('tanggal', $month)
+                        ->where('id', '!=', $id)
+                        ->first();
+
+            if ($existingEntry) {
                 return response()->json([
-                    'message' => $this->messageMissing,
-                    'success' => true,
-                    // 'code' => 401
-                ], 401);
+                    'message' => 'An entry already exists for this month',
+                    'success' => false,
+                ], 400);
             }
 
-            $dataToUpdate = [
-                'nama' => $request->filled('nama') ? $request->nama : $data->nama,
-                'lokasi' => $request->filled('lokasi') ? $request->lokasi : $data->lokasi,
-            ];
-
-            $oldData = $data->toArray();
-            $data->update($dataToUpdate);
+            $data->update($request->all());
 
             LoggerService::logAction($this->userData, $data, 'update', $oldData, $data->toArray());
 
@@ -148,18 +166,16 @@ class PmgController extends Controller
             return response()->json([
                 'data' => $data,
                 'message' => $this->messageUpdate,
-                // 'code' => 200,
-                'success' => true
+                'success' => true,
             ], 200);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollback();
             return response()->json([
                 'message' => $this->messageFail,
                 'err' => $e->getTrace()[0],
                 'errMsg' => $e->getMessage(),
-                // 'code' => 500,
-                'success' => false
+                'success' => false,
             ], 500);
         }
     }

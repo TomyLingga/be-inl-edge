@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Master;
+namespace App\Http\Controllers\IncomingCpo;
 
 use App\Http\Controllers\Controller;
-use App\Models\Master\Pmg;
+use App\Http\Controllers\CpoKpbnViewer;
+use App\Models\IncomingCpo\IncomingCpo;
+use App\Models\IncomingCpo\SourceIncomingCpo;
 use App\Services\LoggerService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class PmgController extends Controller
+class IncomingCpoController extends Controller
 {
     private $messageFail = 'Something went wrong';
     private $messageMissing = 'Data not found in record';
@@ -19,10 +21,19 @@ class PmgController extends Controller
     private $messageCreate = 'Success to Create Data';
     private $messageUpdate = 'Success to Update Data';
 
+    protected $cpoKpbnViewer;
+
+    public function __construct(CpoKpbnViewer $cpoKpbnViewer)
+    {
+        parent::__construct();
+
+        $this->cpoKpbnViewer = $cpoKpbnViewer;
+    }
+
     public function index()
     {
         try {
-            $data = Pmg::all();
+            $data = IncomingCpo::with('source')->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)
@@ -41,7 +52,7 @@ class PmgController extends Controller
     public function show($id)
     {
         try {
-            $data = Pmg::findOrFail($id);
+            $data = IncomingCpo::with('source')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -68,8 +79,11 @@ class PmgController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama',
-                'lokasi' => 'required',
+                'source_id' => 'required|exists:' . SourceIncomingCpo::class . ',id',
+                'tanggal' => 'required|date',
+                'qty' => 'required|numeric',
+                'harga' => 'required|numeric'
+
             ]);
 
             if ($validator->fails()) {
@@ -80,7 +94,19 @@ class PmgController extends Controller
                 ], 400);
             }
 
-            $data = Pmg::create($request->all());
+
+            $existingEntry = IncomingCpo::where('source_id', $request->source_id)
+                                        ->where('tanggal', $request->tanggal)
+                                        ->first();
+
+            if ($existingEntry) {
+                return response()->json([
+                    'message' => 'Entry already exists for this source and date',
+                    'success' => false,
+                ], 400);
+            }
+
+            $data = IncomingCpo::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -111,8 +137,10 @@ class PmgController extends Controller
         try {
 
             $validator = Validator::make($request->all(), [
-                'nama' => 'required|unique:pmg,nama,' . $id,
-                'lokasi' => 'required',
+                'source_id' => 'required|exists:' . SourceIncomingCpo::class . ',id',
+                'tanggal' => 'required|date',
+                'qty' => 'required|numeric',
+                'harga' => 'required|numeric'
             ]);
 
             if ($validator->fails()) {
@@ -122,20 +150,25 @@ class PmgController extends Controller
                     'success' => false
                 ], 400);
             }
-            $data = Pmg::find($id);
+            $data = IncomingCpo::findOrFail($id);
 
-            if (!$data) {
+            $existingEntry = IncomingCpo::where('id_mata_uang', $request->id_mata_uang)
+                                ->where('tanggal', $request->tanggal)
+                                ->where('id', '!=', $id)
+                                ->first();
 
+            if ($existingEntry) {
                 return response()->json([
-                    'message' => $this->messageMissing,
-                    'success' => true,
-                    // 'code' => 401
-                ], 401);
+                    'message' => 'An entry already exists for this uraian and date',
+                    'success' => false,
+                ], 400);
             }
 
             $dataToUpdate = [
-                'nama' => $request->filled('nama') ? $request->nama : $data->nama,
-                'lokasi' => $request->filled('lokasi') ? $request->lokasi : $data->lokasi,
+                'source_id' => $request->filled('source_id') ? $request->source_id : $data->source_id,
+                'tanggal' => $request->filled('tanggal') ? $request->tanggal : $data->tanggal,
+                'qty' => $request->filled('qty') ? $request->qty : $data->qty,
+                'harga' => $request->filled('harga') ? $request->harga : $data->harga,
             ];
 
             $oldData = $data->toArray();
@@ -160,6 +193,28 @@ class PmgController extends Controller
                 'errMsg' => $e->getMessage(),
                 // 'code' => 500,
                 'success' => false
+            ], 500);
+        }
+    }
+
+    public function indexPeriod(Request $request)
+    {
+        $tanggalAwal = $request->tanggalAwal;
+        $tanggalAkhir = $request->tanggalAkhir;
+        $idMataUang = $request->idMataUang;
+
+        try {
+
+            $data = $this->cpoKpbnViewer->indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir, $idMataUang);
+
+            return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => $this->messageFail,
+                'err' => $e->getTrace()[0],
+                'errMsg' => $e->getMessage(),
+                'success' => false,
             ], 500);
         }
     }
