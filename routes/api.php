@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('matauang', [App\Http\Controllers\Kurs\MataUangController::class, 'index']);
+Route::get('matauang/get/{id}', [App\Http\Controllers\Kurs\MataUangController::class, 'show']);
+
 Route::get('kategori-cashflowmov', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'index']);
 Route::get('kategori-cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'show']);
 
@@ -71,11 +74,22 @@ Route::post('target-prod/period', [App\Http\Controllers\CpoVs\TargetProdControll
 Route::get('cashflowmov', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'index']);
 Route::get('cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'show']);
 Route::post('cashflowmov/period', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'indexPeriod']);
+//target
+Route::get('cpo-kpbn', [App\Http\Controllers\CPO\CpoKpbnController::class, 'index']);
+Route::get('cpo-kpbn/get/{id}', [App\Http\Controllers\CPO\CpoKpbnController::class, 'show']);
+Route::post('cpo-kpbn/period', [App\Http\Controllers\CPO\CpoKpbnController::class, 'indexPeriod']);
+//kurs
+Route::get('kurs', [App\Http\Controllers\Kurs\KursController::class, 'index']);
+Route::get('kurs/get/{id}', [App\Http\Controllers\Kurs\KursController::class, 'show']);
+Route::post('kurs/period', [App\Http\Controllers\Kurs\KursController::class, 'indexPeriod']);
 
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
+    //matauang
+    Route::post('matauang/add', [App\Http\Controllers\Kurs\MataUangController::class, 'store']);
+    Route::post('matauang/update/{id}', [App\Http\Controllers\Kurs\MataUangController::class, 'update']);
     //Kategori Cash flow movement
     Route::post('kategori-cashflowmov/add', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'store']);
     Route::post('kategori-cashflowmov/update/{id}', [App\Http\Controllers\CashFlowMov\KategoriCashFlowMovController::class, 'update']);
@@ -124,6 +138,12 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //laporan material
     Route::post('laporan-material/add', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'store']);
     Route::post('laporan-material/update/{id}', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'update']);
+    //cpo Kpbn
+    Route::post('cpo-kpbn/add', [App\Http\Controllers\CPO\CpoKpbnController::class, 'store']);
+    Route::post('cpo-kpbn/update/{id}', [App\Http\Controllers\CPO\CpoKpbnController::class, 'update']);
+    //kurs
+    Route::post('kurs/add', [App\Http\Controllers\Kurs\KursController::class, 'store']);
+    Route::post('kurs/update/{id}', [App\Http\Controllers\Kurs\KursController::class, 'update']);
 
 });
 
