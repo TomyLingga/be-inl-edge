@@ -145,15 +145,20 @@ class CashFlowMovementViewer extends Controller
                     return (float) $item->value;
                 });
 
-                if (!isset($formattedData[$kategori->name])) {
-                    $formattedData[$kategori->name] = [
+                $kategoriIndex = collect($formattedData)->search(function ($item) use ($kategori) {
+                    return $item['name'] === $kategori->name;
+                });
+
+                if ($kategoriIndex === false) {
+                    $formattedData[] = [
                         'name' => $kategori->name,
                         'total' => 0,
                         'period' => []
                     ];
+                    $kategoriIndex = count($formattedData) - 1;
                 }
 
-                $formattedData[$kategori->name]['period'][] = [
+                $formattedData[$kategoriIndex]['period'][] = [
                     'month' => $month,
                     'year' => $year,
                     'total' => $totalValue,
@@ -187,16 +192,19 @@ class CashFlowMovementViewer extends Controller
                     })
                 ];
 
-                $formattedData[$kategori->name]['total'] += $totalValue;
+                $formattedData[$kategoriIndex]['total'] += $totalValue;
             }
         }
 
-        foreach ($formattedData as $kategoriName => &$kategoriData) {
+        foreach ($formattedData as &$kategoriData) {
             usort($kategoriData['period'], function ($a, $b) {
                 return $a['month'] <=> $b['month'];
             });
         }
 
-        return $formattedData;
+        return [
+            'kategori' => $formattedData
+        ];
     }
+
 }
