@@ -23,6 +23,13 @@ Route::get('kategori-cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\Ka
 Route::get('kategori-cashflowschedlue', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'index']);
 Route::get('kategori-cashflowschedlue/get/{id}', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'show']);
 
+Route::get('kategori-profitability', [App\Http\Controllers\Profitability\KategoriProfitablityController::class, 'index']);
+Route::get('kategori-profitability/get/{id}', [App\Http\Controllers\Profitability\KategoriProfitablityController::class, 'show']);
+
+Route::get('profitability', [App\Http\Controllers\Profitability\ProfitablityController::class, 'index']);
+Route::get('profitability/get/{id}', [App\Http\Controllers\Profitability\ProfitablityController::class, 'show']);
+Route::post('profitability/period', [App\Http\Controllers\Profitability\ProfitablityController::class, 'indexPeriod']);
+
 Route::get('paystatus-cashflowschedlue', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'index']);
 Route::get('paystatus-cashflowschedlue/get/{id}', [App\Http\Controllers\CashFlowSchedule\PayStatusCashFlowScheduleController::class, 'show']);
 //beban
@@ -75,6 +82,12 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     // Cash flow movement
     Route::post('cashflowmov/add', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'store']);
     Route::post('cashflowmov/update/{id}', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'update']);
+    //Kategori Profitability
+    Route::post('kategori-profitability/add', [App\Http\Controllers\Profitability\KategoriProfitablityController::class, 'store']);
+    Route::post('kategori-profitability/update/{id}', [App\Http\Controllers\Profitability\KategoriProfitablityController::class, 'update']);
+    // Profitability
+    Route::post('profitability/add', [App\Http\Controllers\Profitability\ProfitablityController::class, 'store']);
+    Route::post('profitability/update/{id}', [App\Http\Controllers\Profitability\ProfitablityController::class, 'update']);
     //Kategori Cash flow schedule
     Route::post('kategori-cashflowschedlue/add', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'store']);
     Route::post('kategori-cashflowschedlue/update/{id}', [App\Http\Controllers\CashFlowSchedule\KategoriCashFlowScheduleController::class, 'update']);

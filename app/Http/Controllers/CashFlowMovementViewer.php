@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CashFlowMovement\CashFlowMovement;
 use App\Models\CashFlowSchedule\CashFlowSchedule;
+use App\Models\Profitablity\Profitablity;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -204,6 +205,112 @@ class CashFlowMovementViewer extends Controller
 
         return [
             'kategori' => $formattedData
+        ];
+    }
+
+    public function indexPeriodProfitability($tanggalAkhir, $idPmg)
+    {
+        $tanggal = Carbon::parse($tanggalAkhir);
+        $thisYear = $tanggal->year;
+        $lastYear = $thisYear - 1;
+
+        // Fetch data for this year and last year
+        $data = Profitablity::whereYear('tanggal', '>=', $lastYear)
+            ->where('pmg_id', $idPmg)
+            ->with('kategori', 'pmg')
+            ->get();
+
+        if ($data->isEmpty()) {
+            return [
+                'data' => [
+                    'thisYear' => ['year' => $thisYear, 'months' => []],
+                    'lastYear' => ['year' => $lastYear, 'months' => []],
+                ],
+                'message' => 'No data found',
+            ];
+        }
+
+        // Group data by year and month
+        $groupedData = $data->groupBy(function ($item) {
+            return Carbon::parse($item->tanggal)->format('Y-m');
+        });
+
+        $result = [
+            'thisYear' => ['year' => $thisYear, 'months' => []],
+            'lastYear' => ['year' => $lastYear, 'months' => []],
+        ];
+
+        // Format data for each year and month
+        foreach ($groupedData as $monthYear => $items) {
+            [$year, $month] = explode('-', $monthYear);
+            $month = (int)$month;
+            $year = (int)$year;
+
+            $pendapatan = $items->firstWhere('kategori.name', 'Pendapatan')?->value ?? 0;
+            $targetPendapatanRkap = $items->firstWhere('kategori.name', 'Target Pendapatan RKAP')?->value ?? 0;
+            $labaKotor = $items->firstWhere('kategori.name', 'Laba Kotor')?->value ?? 0;
+            $ebitda = $items->firstWhere('kategori.name', 'EBITDA')?->value ?? 0;
+            $labaBersih = $items->firstWhere('kategori.name', 'Laba Bersih')?->value ?? 0;
+
+            // Calculate percentages
+            $gpmPercent = $pendapatan > 0 ? ($labaKotor / $pendapatan) * 100 : 0;
+            $ebitdaPercent = $pendapatan > 0 ? ($ebitda / $pendapatan) * 100 : 0;
+            $npmPercent = $pendapatan > 0 ? ($labaBersih / $pendapatan) * 100 : 0;
+
+            $details = $items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->kategori->name,
+                    'value' => (float)$item->value,
+                ];
+            });
+
+            $monthData = [
+                'month' => $month,
+                'pendapatan' => $pendapatan,
+                'targetPendapatanRkap' => $targetPendapatanRkap,
+                'labaKotor' => $labaKotor,
+                'gpmPercent' => round($gpmPercent, 2),
+                'ebitda' => $ebitda,
+                'ebitdaPercent' => round($ebitdaPercent, 2),
+                'labaBersih' => $labaBersih,
+                'npmPercent' => round($npmPercent, 2),
+                'detail' => $details,
+            ];
+
+            if ($year === $thisYear) {
+                $result['thisYear']['months'][] = $monthData;
+            } elseif ($year === $lastYear) {
+                $result['lastYear']['months'][] = $monthData;
+            }
+        }
+
+        // Ensure all months for lastYear are accounted for with default values
+        for ($m = 1; $m <= 12; $m++) {
+            if (!collect($result['lastYear']['months'])->pluck('month')->contains($m)) {
+                $result['lastYear']['months'][] = [
+                    'month' => $m,
+                    'pendapatan' => 0,
+                    'targetPendapatanRkap' => 0,
+                    'labaKotor' => 0,
+                    'gpmPercent' => 0,
+                    'ebitda' => 0,
+                    'ebitdaPercent' => 0,
+                    'labaBersih' => 0,
+                    'npmPercent' => 0,
+                    'detail' => [],
+                ];
+            }
+        }
+
+        // Sort months for consistency
+        foreach (['thisYear', 'lastYear'] as $key) {
+            usort($result[$key]['months'], fn($a, $b) => $a['month'] <=> $b['month']);
+        }
+
+        return [
+            'data' => $result,
+            'message' => 'Success to Fetch All Datas',
         ];
     }
 
