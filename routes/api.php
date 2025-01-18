@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('supplier', [App\Http\Controllers\Partner\SupplierController::class, 'index']);
+Route::get('supplier/get/{id}', [App\Http\Controllers\Partner\SupplierController::class, 'show']);
+
 Route::get('source-cpo', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'index']);
 Route::get('source-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'show']);
 
@@ -92,11 +95,22 @@ Route::post('cpo-kpbn/period', [App\Http\Controllers\CPO\CpoKpbnController::clas
 Route::get('kurs', [App\Http\Controllers\Kurs\KursController::class, 'index']);
 Route::get('kurs/get/{id}', [App\Http\Controllers\Kurs\KursController::class, 'show']);
 Route::post('kurs/period', [App\Http\Controllers\Kurs\KursController::class, 'indexPeriod']);
+//outstanding cpo
+Route::get('outstanding-cpo', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'index']);
+Route::get('outstanding-cpo/get/{id}', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'show']);
+Route::get('outstanding-cpo/period', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'indexPeriod']);
+//saldo pe
+Route::get('saldope', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'index']);
+Route::get('saldope/get/{id}', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'show']);
+Route::post('saldope/period', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'indexPeriod']);
 
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
+    //supplier
+    Route::post('supplier/add', [App\Http\Controllers\Partner\SupplierController::class, 'store']);
+    Route::post('supplier/update/{id}', [App\Http\Controllers\Partner\SupplierController::class, 'update']);
     //source cpo
     Route::post('source-cpo/add', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'store']);
     Route::post('source-cpo/update/{id}', [App\Http\Controllers\IncomingCpo\SourcingIncomingCpoController::class, 'update']);
@@ -163,6 +177,12 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //kurs
     Route::post('kurs/add', [App\Http\Controllers\Kurs\KursController::class, 'store']);
     Route::post('kurs/update/{id}', [App\Http\Controllers\Kurs\KursController::class, 'update']);
+    //outstanding cpo
+    Route::post('outstanding-cpo/add', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'store']);
+    Route::post('outstanding-cpo/update/{id}', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'update']);
+    //saldo pe
+    Route::post('saldope/add', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'store']);
+    Route::post('saldope/update/{id}', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'update']);
 
 });
 
