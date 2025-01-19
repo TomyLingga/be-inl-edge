@@ -152,7 +152,7 @@ class IncomingCpoController extends Controller
             }
             $data = IncomingCpo::findOrFail($id);
 
-            $existingEntry = IncomingCpo::where('id_mata_uang', $request->id_mata_uang)
+            $existingEntry = IncomingCpo::where('source_id', $request->source_id)
                                 ->where('tanggal', $request->tanggal)
                                 ->where('id', '!=', $id)
                                 ->first();

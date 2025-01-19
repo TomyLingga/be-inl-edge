@@ -18,8 +18,6 @@ class SaldoPe extends Model
         'saldo_pakai',
     ];
 
-    protected $hidden = ['created_at', 'updated_at'];
-
     /**
      * Define the polymorphic relationship with logs.
      */
