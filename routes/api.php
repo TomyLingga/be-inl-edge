@@ -133,6 +133,10 @@ Route::post('stock-bulk/period', [App\Http\Controllers\Stock\StockBulkController
 Route::get('stock-retail', [App\Http\Controllers\Stock\StockRitelController::class, 'index']);
 Route::get('stock-retail/get/{id}', [App\Http\Controllers\Stock\StockRitelController::class, 'show']);
 Route::post('stock-retail/period', [App\Http\Controllers\Stock\StockRitelController::class, 'indexPeriod']);
+//Harga
+Route::get('harga', [App\Http\Controllers\Harga\HargaController::class, 'index']);
+Route::get('harga/get/{id}', [App\Http\Controllers\Harga\HargaController::class, 'show']);
+Route::post('harga/period', [App\Http\Controllers\Harga\HargaController::class, 'indexPeriod']);
 
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
@@ -237,6 +241,9 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //stok retail
     Route::post('stock-retail/add', [App\Http\Controllers\Stock\StockRitelController::class, 'store']);
     Route::post('stock-retail/update/{id}', [App\Http\Controllers\Stock\StockRitelController::class, 'update']);
+    //harga
+    Route::post('harga/add', [App\Http\Controllers\Harga\HargaController::class, 'store']);
+    Route::post('harga/update/{id}', [App\Http\Controllers\Harga\HargaController::class, 'update']);
 
 });
 

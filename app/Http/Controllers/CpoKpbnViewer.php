@@ -102,6 +102,7 @@ class CpoKpbnViewer extends Controller
     {
         $data = Kurs::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
                     ->where('id_mata_uang',$idMataUang)
+                    ->with('mataUang')
                     ->orderBy('tanggal', 'asc') // Sort by tanggal in ascending order
                     ->get();
 

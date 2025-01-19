@@ -13,7 +13,7 @@ class Product extends Model
 
     protected $table = 'product';
 
-    protected $fillable = ['name', 'jenis', 'konversi_ton', 'konversi_pallet'];
+    protected $fillable = ['name', 'jenis', 'konversi_ton', 'konversi_pallet', 'konversi_pouch'];
 
     protected $hidden = ['created_at', 'updated_at'];
 
