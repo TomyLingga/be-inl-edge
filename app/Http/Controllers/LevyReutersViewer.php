@@ -12,38 +12,34 @@ class LevyReutersViewer extends Controller
 {
     public function indexPeriodLevyDuty($tanggalAwal, $tanggalAkhir, $idMataUang)
     {
-        // Fetch data from the database
         $levyduty = LevyDuty::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->where('id_mata_uang', $idMataUang)
             ->with('product', 'mataUang')
-            ->orderBy('tanggal', 'asc') // Ensure levyduty is sorted by tanggal
+            ->orderBy('tanggal', 'asc')
             ->get();
 
         $marketReuters = MarketReuters::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->where('id_mata_uang', $idMataUang)
             ->with('product', 'mataUang')
-            ->orderBy('tanggal', 'asc') // Ensure marketReuters is sorted by tanggal
+            ->orderBy('tanggal', 'asc')
             ->get();
 
         $kurs = Kurs::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->where('id_mata_uang', $idMataUang)
             ->with('mataUang')
-            ->orderBy('tanggal', 'asc') // Ensure kurs is sorted by tanggal
+            ->orderBy('tanggal', 'asc')
             ->get();
 
         $averageKurs = round($kurs->avg('value'), 2);
 
-        // Group data by Year and Month
         $groupedData = [];
 
-        // Group kurs by year and month
         foreach ($kurs as $k) {
             $year = Carbon::parse($k->tanggal)->year;
             $month = Carbon::parse($k->tanggal)->month;
             $groupedData[$year]['months'][$month]['kurs'][] = $k;
         }
 
-        // Group levyduty and marketReuters by year, month, and product
         foreach ($levyduty as $ld) {
             $year = Carbon::parse($ld->tanggal)->year;
             $month = Carbon::parse($ld->tanggal)->month;
@@ -60,54 +56,95 @@ class LevyReutersViewer extends Controller
             $groupedData[$year]['months'][$month]['products'][$productName]['marketReuters'][] = $mr;
         }
 
-        // Calculate marketReutersExcldLevyDuty and marketIdr
-        // Calculate marketReutersExcldLevyDuty and marketIdr
-    foreach ($groupedData as $year => &$data) {
-        foreach ($data['months'] as $month => &$monthData) {
-            // Check if 'products' exists and is an array, then loop through it
-            if (isset($monthData['products']) && is_array($monthData['products'])) {
-                foreach ($monthData['products'] as $productName => &$productData) {
-                    // Convert levyduty and kurs arrays into collections for easier filtering
-                    $levydutyCollection = collect($productData['levyduty']);
-                    $kursCollection = collect($monthData['kurs']);
+        foreach ($groupedData as $year => &$data) {
+            $averageMarketReutersExcldLevyDuty = [];
+            $averageMarketIdr = [];
+            foreach ($data['months'] as $month => &$monthData) {
+                $monthData['kurs'] = $monthData['kurs'] ?? [];
+                if (isset($monthData['products']) && is_array($monthData['products'])) {
+                    foreach ($monthData['products'] as $productName => &$productData) {
+                        // Convert levyduty and kurs arrays into collections for easier filtering
+                        $levydutyCollection = collect($productData['levyduty']);
+                        $kursCollection = collect($monthData['kurs']);
 
-                    // Calculate marketReutersExcldLevyDuty and marketIdr for each product
-                    foreach ($productData['marketReuters'] as $index => $marketReuters) {
-                        $marketDate = $marketReuters['tanggal'];
+                        // Calculate marketReutersExcldLevyDuty and marketIdr for each product
+                        foreach ($productData['marketReuters'] as $index => $marketReuters) {
+                            $marketDate = $marketReuters['tanggal'];
+                            $marketProduct = $marketReuters['product']['name'];
 
-                        // Find the corresponding levyDuty and kurs for the same date
-                        $levyDuty = $levydutyCollection->firstWhere('tanggal', $marketDate);
-                        $kursValue = $kursCollection->firstWhere('tanggal', $marketDate);
+                            // Find the corresponding levyDuty and kurs for the same date
+                            $levyDuty = $levydutyCollection->firstWhere('tanggal', $marketDate);
+                            $kursValue = $kursCollection->firstWhere('tanggal', $marketDate);
 
-                        if ($levyDuty && $kursValue) {
-                            // Calculate marketReutersExcldLevyDuty
-                            $marketReutersExcldLevyDuty = $marketReuters['nilai'] - $levyDuty['nilai'];
+                            if (!$kursValue) {
+                                $kursValue = ['value' => 1];
+                            }
 
-                            // Calculate marketIdr
-                            $marketIdr = ($marketReutersExcldLevyDuty * $kursValue['value']) / 1000;
+                            if ($levyDuty && $kursValue['value'] !== 0) {
+                                // Calculate marketReutersExcldLevyDuty
+                                $marketReutersExcldLevyDuty = $marketReuters['nilai'] - $levyDuty['nilai'];
 
-                            // Store the calculated values
-                            $productData['marketReutersExcldLevyDuty'][$index] = [
-                                'tanggal' => $marketDate,
-                                'nilai' => $marketReutersExcldLevyDuty
-                            ];
+                                // Calculate marketIdr
+                                $marketIdr = ($marketReutersExcldLevyDuty * $kursValue['value']) / 1000;
 
-                            $productData['marketIdr'][$index] = [
-                                'tanggal' => $marketDate,
-                                'nilai' => $marketIdr
-                            ];
+                                // Store the calculated values
+                                $productData['marketReutersExcldLevyDuty'][$index] = [
+                                    'product' => $marketProduct,
+                                    'tanggal' => $marketDate,
+                                    'nilai' => $marketReutersExcldLevyDuty
+                                ];
+
+                                $productData['marketIdr'][$index] = [
+                                    'product' => $marketProduct,
+                                    'tanggal' => $marketDate,
+                                    'nilai' => $marketIdr
+                                ];
+                            }
+                        }
+
+                        $excldLevyDutyValues = collect($productData['marketReutersExcldLevyDuty'])->pluck('nilai');
+                        $idrValues = collect($productData['marketIdr'])->pluck('nilai');
+
+                        // Calculate averages and store them grouped by product
+                        if ($excldLevyDutyValues->isNotEmpty()) {
+                            if (!isset($averageMarketReutersExcldLevyDuty[$productName])) {
+                                $averageMarketReutersExcldLevyDuty[$productName] = [];
+                            }
+                            $averageMarketReutersExcldLevyDuty[$productName][] = $excldLevyDutyValues->avg();
+                        }
+                        if ($idrValues->isNotEmpty()) {
+                            if (!isset($averageMarketIdr[$productName])) {
+                                $averageMarketIdr[$productName] = [];
+                            }
+                            $averageMarketIdr[$productName][] = $idrValues->avg();
                         }
                     }
                 }
             }
+
         }
-    }
+
+        $data['averageMarketReutersExcldLevyDuty'] = collect($averageMarketReutersExcldLevyDuty)->map(function ($values, $productName) {
+            return [
+                'product' => $productName,
+                'avg' => round(collect($values)->avg(), 2)
+            ];
+        })->values()->toArray();
+
+        $data['averageMarketIdr'] = collect($averageMarketIdr)->map(function ($values, $productName) {
+            return [
+                'product' => $productName,
+                'avg' => round(collect($values)->avg(), 2)
+            ];
+        })->values()->toArray();
 
         $output = [];
         foreach ($groupedData as $year => $data) {
             $output[] = [
                 'year' => $year,
                 'averageKurs' => $averageKurs,
+                'averageMarketReutersExcldLevyDuty' => $data['averageMarketReutersExcldLevyDuty'],
+                'averageMarketIdr' => $data['averageMarketIdr'],
                 'months' => array_map(function ($monthData, $month) {
                     return [
                         'month' => $month,
