@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('produk', [App\Http\Controllers\Master\ProductController::class, 'index']);
+Route::get('produk/get/{id}', [App\Http\Controllers\Master\ProductController::class, 'show']);
+Route::get('produk/jenis/{jenis}', [App\Http\Controllers\Master\ProductController::class, 'byJenis']);
+
 Route::get('supplier', [App\Http\Controllers\Partner\SupplierController::class, 'index']);
 Route::get('supplier/get/{id}', [App\Http\Controllers\Partner\SupplierController::class, 'show']);
 
@@ -103,11 +107,21 @@ Route::get('outstanding-cpo/period', [App\Http\Controllers\Outstanding\Outstandi
 Route::get('saldope', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'index']);
 Route::get('saldope/get/{id}', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'show']);
 Route::post('saldope/period', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'indexPeriod']);
+//levy duty
+Route::get('levyduty', [App\Http\Controllers\LevyReuters\LevyDutyController::class, 'index']);
+Route::get('levyduty/get/{id}', [App\Http\Controllers\LevyReuters\LevyDutyController::class, 'show']);
+Route::post('levy-reuters/period', [App\Http\Controllers\LevyReuters\LevyDutyController::class, 'indexPeriod']);
+//Market Reuters
+Route::get('market-reuters', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'index']);
+Route::get('market-reuters/get/{id}', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'show']);
 
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
+    //produk
+    Route::post('produk/add', [App\Http\Controllers\Master\ProductController::class, 'store']);
+    Route::post('produk/update/{id}', [App\Http\Controllers\Master\ProductController::class, 'update']);
     //supplier
     Route::post('supplier/add', [App\Http\Controllers\Partner\SupplierController::class, 'store']);
     Route::post('supplier/update/{id}', [App\Http\Controllers\Partner\SupplierController::class, 'update']);
@@ -183,6 +197,12 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //saldo pe
     Route::post('saldope/add', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'store']);
     Route::post('saldope/update/{id}', [App\Http\Controllers\SaldoPe\SaldoPeController::class, 'update']);
+    //levyduty
+    Route::post('levyduty/add', [App\Http\Controllers\LevyReuters\LevyDutyController::class, 'store']);
+    Route::post('levyduty/update/{id}', [App\Http\Controllers\LevyReuters\LevyDutyController::class, 'update']);
+    //marketreuters
+    Route::post('market-reuters/add', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'store']);
+    Route::post('market-reuters/update/{id}', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'update']);
 
 });
 

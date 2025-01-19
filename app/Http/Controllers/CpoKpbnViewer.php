@@ -21,10 +21,7 @@ class CpoKpbnViewer extends Controller
                     ->get();
 
         if ($data->isEmpty() || $kurs->isEmpty()) {
-            return response()->json([
-                'data' => null,
-                'message' => 'No data or kurs found for the given period.',
-            ]);
+            return null;
         }
 
         $averageTotal = round($data->avg('value'), 2);

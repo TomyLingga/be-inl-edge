@@ -17,6 +17,8 @@ class CreateLevyReutersTable extends Migration
             $table->id();
             $table->string('name');
             $table->enum('jenis', ['bulk', 'ritel']);
+            $table->decimal('konversi_ton', 30);
+            $table->decimal('konversi_pallet', 30);
             $table->timestamps();
         });
 
