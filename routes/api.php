@@ -17,9 +17,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('lokasi', [App\Http\Controllers\Master\LokasiController::class, 'index']);
+Route::get('lokasi/get/{id}', [App\Http\Controllers\Master\LokasiController::class, 'show']);
+
 Route::get('produk', [App\Http\Controllers\Master\ProductController::class, 'index']);
 Route::get('produk/get/{id}', [App\Http\Controllers\Master\ProductController::class, 'show']);
 Route::get('produk/jenis/{jenis}', [App\Http\Controllers\Master\ProductController::class, 'byJenis']);
+
+Route::get('produk-storage', [App\Http\Controllers\Master\ProductStorageController::class, 'index']);
+Route::get('produk-storage/get/{id}', [App\Http\Controllers\Master\ProductStorageController::class, 'show']);
+Route::get('produk-storage/jenis/{jenis}', [App\Http\Controllers\Master\ProductStorageController::class, 'byJenis']);
 
 Route::get('supplier', [App\Http\Controllers\Partner\SupplierController::class, 'index']);
 Route::get('supplier/get/{id}', [App\Http\Controllers\Partner\SupplierController::class, 'show']);
@@ -114,14 +121,32 @@ Route::post('levy-reuters/period', [App\Http\Controllers\LevyReuters\LevyDutyCon
 //Market Reuters
 Route::get('market-reuters', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'index']);
 Route::get('market-reuters/get/{id}', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'show']);
+//stok cpo
+Route::get('stock-cpo', [App\Http\Controllers\Stock\StockCpoController::class, 'index']);
+Route::get('stock-cpo/get/{id}', [App\Http\Controllers\Stock\StockCpoController::class, 'show']);
+Route::post('stock-cpo/period', [App\Http\Controllers\Stock\StockCpoController::class, 'indexPeriod']);
+//stok bulk
+Route::get('stock-bulk', [App\Http\Controllers\Stock\StockBulkController::class, 'index']);
+Route::get('stock-bulk/get/{id}', [App\Http\Controllers\Stock\StockBulkController::class, 'show']);
+Route::post('stock-bulk/period', [App\Http\Controllers\Stock\StockBulkController::class, 'indexPeriod']);
+//stok ritel
+Route::get('stock-retail', [App\Http\Controllers\Stock\StockRitelController::class, 'index']);
+Route::get('stock-retail/get/{id}', [App\Http\Controllers\Stock\StockRitelController::class, 'show']);
+Route::post('stock-retail/period', [App\Http\Controllers\Stock\StockRitelController::class, 'indexPeriod']);
 
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
+    //PMG
+    Route::post('lokasi/add', [App\Http\Controllers\Master\LokasiController::class, 'store']);
+    Route::post('lokasi/update/{id}', [App\Http\Controllers\Master\LokasiController::class, 'update']);
     //produk
     Route::post('produk/add', [App\Http\Controllers\Master\ProductController::class, 'store']);
     Route::post('produk/update/{id}', [App\Http\Controllers\Master\ProductController::class, 'update']);
+    //produk storage
+    Route::post('produk-storage/add', [App\Http\Controllers\Master\ProductStorageController::class, 'store']);
+    Route::post('produk-storage/update/{id}', [App\Http\Controllers\Master\ProductStorageController::class, 'update']);
     //supplier
     Route::post('supplier/add', [App\Http\Controllers\Partner\SupplierController::class, 'store']);
     Route::post('supplier/update/{id}', [App\Http\Controllers\Partner\SupplierController::class, 'update']);
@@ -203,6 +228,15 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //marketreuters
     Route::post('market-reuters/add', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'store']);
     Route::post('market-reuters/update/{id}', [App\Http\Controllers\LevyReuters\MarketReutersController::class, 'update']);
+    //stok cpo
+    Route::post('stock-cpo/add', [App\Http\Controllers\Stock\StockCpoController::class, 'store']);
+    Route::post('stock-cpo/update/{id}', [App\Http\Controllers\Stock\StockCpoController::class, 'update']);
+    //stok bulk
+    Route::post('stock-bulk/add', [App\Http\Controllers\Stock\StockBulkController::class, 'store']);
+    Route::post('stock-bulk/update/{id}', [App\Http\Controllers\Stock\StockBulkController::class, 'update']);
+    //stok retail
+    Route::post('stock-retail/add', [App\Http\Controllers\Stock\StockRitelController::class, 'store']);
+    Route::post('stock-retail/update/{id}', [App\Http\Controllers\Stock\StockRitelController::class, 'update']);
 
 });
 
