@@ -23,7 +23,7 @@ class PackagingViewer extends Controller
         }
 
         // Get the laporan data for final value comparison
-        $dataLaporan = $this->indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging);
+        $dataLaporan = $this->indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging)['summary'];
 
         // Group the data by 'jenis' (packaging type)
         $groupedData = $data->groupBy('jenis.id')
@@ -70,11 +70,6 @@ class PackagingViewer extends Controller
         return $groupedData;
     }
 
-
-
-
-
-
     public function indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging)
     {
         $data = LaporanPackaging::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
@@ -85,6 +80,8 @@ class PackagingViewer extends Controller
                 'packaging'
             ])
             ->get();
+
+        $periodData = $data;
 
         if ($data->isEmpty()) {
             return null;
@@ -148,6 +145,9 @@ class PackagingViewer extends Controller
                 ];
             })->values();
 
-        return $groupedData;
+        return [
+            "summary" => $groupedData,
+            "dataPeriod" => $periodData,
+        ];
     }
 }
