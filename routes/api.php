@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('pmg', [App\Http\Controllers\Master\PmgController::class, 'index']);
 Route::get('pmg/get/{id}', [App\Http\Controllers\Master\PmgController::class, 'show']);
 
+Route::get('packaging', [App\Http\Controllers\Packaging\PackagingController::class, 'index']);
+Route::get('packaging/get/{id}', [App\Http\Controllers\Packaging\PackagingController::class, 'show']);
+
 Route::get('lokasi', [App\Http\Controllers\Master\LokasiController::class, 'index']);
 Route::get('lokasi/get/{id}', [App\Http\Controllers\Master\LokasiController::class, 'show']);
 
@@ -67,9 +70,16 @@ Route::post('cashflowschedlue/period', [App\Http\Controllers\CashFlowSchedule\Ca
 Route::get('jenis-laporan-prod', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'index']);
 Route::get('jenis-laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'show']);
 
+Route::get('jenis-laporan-packaging', [App\Http\Controllers\Packaging\JenisLaporanPackagingController::class, 'index']);
+Route::get('jenis-laporan-packaging/get/{id}', [App\Http\Controllers\Packaging\JenisLaporanPackagingController::class, 'show']);
+
 Route::get('laporan-prod', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'index']);
 Route::get('laporan-prod/get/{id}', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'show']);
 Route::post('laporan-prod/period', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'indexPeriod']);
+
+Route::get('laporan-packaging', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'index']);
+Route::get('laporan-packaging/get/{id}', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'show']);
+Route::post('laporan-packaging/period', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'indexPeriod']);
 
 Route::get('jenis-laporan-material', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'index']);
 Route::get('jenis-laporan-material/get/{id}', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'show']);
@@ -86,14 +96,21 @@ Route::get('uraian-beban-prod/get/{id}', [App\Http\Controllers\Master\BebanProdU
 
 Route::get('uraian-target-prod', [App\Http\Controllers\Master\TargetProdUraianController::class, 'index']);
 Route::get('uraian-target-prod/get/{id}', [App\Http\Controllers\Master\TargetProdUraianController::class, 'show']);
+
+Route::get('uraian-target-packaging', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'index']);
+Route::get('uraian-target-packaging/get/{id}', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'show']);
 //beban
 Route::get('beban-prod', [App\Http\Controllers\CpoVs\BebanProdController::class, 'index']);
 Route::get('beban-prod/get/{id}', [App\Http\Controllers\CpoVs\BebanProdController::class, 'show']);
 Route::post('beban-prod/period', [App\Http\Controllers\CpoVs\BebanProdController::class, 'indexPeriod']);
-//target
+//target produksi
 Route::get('target-prod', [App\Http\Controllers\CpoVs\TargetProdController::class, 'index']);
 Route::get('target-prod/get/{id}', [App\Http\Controllers\CpoVs\TargetProdController::class, 'show']);
 Route::post('target-prod/period', [App\Http\Controllers\CpoVs\TargetProdController::class, 'indexPeriod']);
+//target packaging
+Route::get('target-packaging', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'index']);
+Route::get('target-packaging/get/{id}', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'show']);
+Route::post('target-packaging/period', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'indexPeriod']);
 //cashflowmovement
 Route::get('cashflowmov', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'index']);
 Route::get('cashflowmov/get/{id}', [App\Http\Controllers\CashFlowMov\CashFlowMovController::class, 'show']);
@@ -142,7 +159,10 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
     Route::post('pmg/update/{id}', [App\Http\Controllers\Master\PmgController::class, 'update']);
-    //PMG
+    //Packaging
+    Route::post('packaging/add', [App\Http\Controllers\Packaging\PackagingController::class, 'store']);
+    Route::post('packaging/update/{id}', [App\Http\Controllers\Packaging\PackagingController::class, 'update']);
+    //Lokasi
     Route::post('lokasi/add', [App\Http\Controllers\Master\LokasiController::class, 'store']);
     Route::post('lokasi/update/{id}', [App\Http\Controllers\Master\LokasiController::class, 'update']);
     //produk
@@ -193,6 +213,12 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //Target Prod Uraian
     Route::post('uraian-target-prod/add', [App\Http\Controllers\Master\TargetProdUraianController::class, 'store']);
     Route::post('uraian-target-prod/update/{id}', [App\Http\Controllers\Master\TargetProdUraianController::class, 'update']);
+    //Target Packaging Uraian
+    Route::post('uraian-target-packaging/add', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'store']);
+    Route::post('uraian-target-packaging/update/{id}', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'update']);
+    //Target Packaging
+    Route::post('target-packaging/add', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'store']);
+    Route::post('target-packaging/update/{id}', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'update']);
     //beban
     Route::post('beban-prod/add', [App\Http\Controllers\CpoVs\BebanProdController::class, 'store']);
     Route::post('beban-prod/update/{id}', [App\Http\Controllers\CpoVs\BebanProdController::class, 'update']);
@@ -202,9 +228,15 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //jenis laporan prod
     Route::post('jenis-laporan-prod/add', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'store']);
     Route::post('jenis-laporan-prod/update/{id}', [App\Http\Controllers\LaporanProduksi\JenisLaporanProduksiController::class, 'update']);
+    //jenis laporan packaging
+    Route::post('jenis-laporan-packaging/add', [App\Http\Controllers\Packaging\JenisLaporanPackagingController::class, 'store']);
+    Route::post('jenis-laporan-packaging/update/{id}', [App\Http\Controllers\Packaging\JenisLaporanPackagingController::class, 'update']);
     //laporan prod
     Route::post('laporan-prod/add', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'store']);
     Route::post('laporan-prod/update/{id}', [App\Http\Controllers\LaporanProduksi\LaporanProduksiController::class, 'update']);
+    //laporan pcakaging
+    Route::post('laporan-packaging/add', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'store']);
+    Route::post('laporan-packaging/update/{id}', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'update']);
     //jenis laporan material
     Route::post('jenis-laporan-material/add', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'store']);
     Route::post('jenis-laporan-material/update/{id}', [App\Http\Controllers\LaporanMaterial\JenisLaporanMaterialController::class, 'update']);
