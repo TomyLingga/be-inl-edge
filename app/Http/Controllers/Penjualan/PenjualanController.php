@@ -57,7 +57,7 @@ class PenjualanController extends Controller
     public function show($id)
     {
         try {
-            $data = LaporanPenjualan::withwith([
+            $data = LaporanPenjualan::with([
                 'product',
                 'customer'
             ])->findOrFail($id);
