@@ -22,7 +22,6 @@ class CreateProfitablityTable extends Migration
         Schema::create('profitablity', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kategori_id')->constrained('kategori_profitablity');
-            $table->foreignId('pmg_id')->constrained('pmg');
             $table->date('tanggal');
             $table->decimal('value', 30, 2);
             $table->timestamps();

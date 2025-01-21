@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class CashFlowMovementViewer extends Controller
 {
-    public function indexPeriodCashFlowMovement($tanggalAkhir, $idPmg)
+    public function indexPeriodCashFlowMovement($tanggalAkhir)
     {
         $startOfLastYear = now()->create($tanggalAkhir)->subYear()->startOfYear();
         $endOfThisYear = now()->create($tanggalAkhir)->endOfYear();
@@ -19,8 +19,7 @@ class CashFlowMovementViewer extends Controller
         $lastMonthThisYear = now()->create($tanggalAkhir)->month;
 
         $data = CashFlowMovement::whereBetween('tanggal', [$startOfLastYear, $endOfThisYear])
-            ->where('pmg_id', $idPmg)
-            ->with('kategori', 'pmg')
+            ->with('kategori')
             ->get();
 
         if ($data->isEmpty()) {
@@ -107,15 +106,14 @@ class CashFlowMovementViewer extends Controller
         ];
     }
 
-    public function indexPeriodCashFlowSchedule($tanggalAkhir, $idPmg)
+    public function indexPeriodCashFlowSchedule($tanggalAkhir)
     {
         $tanggal = Carbon::parse($tanggalAkhir);
         $year = $tanggal->year;
         $month = $tanggal->month;
 
         $data = CashFlowSchedule::whereYear('tanggal', $year)
-            ->where('pmg_id', $idPmg)
-            ->with('kategori', 'pmg', 'payStatus')
+            ->with('kategori','payStatus')
             ->get();
 
         if ($data->isEmpty()) {
@@ -167,7 +165,6 @@ class CashFlowMovementViewer extends Controller
                         return [
                             'id' => $item->id,
                             'kategori_id' => $item->kategori_id,
-                            'pmg_id' => $item->pmg_id,
                             'name' => $item->name,
                             'tanggal' => $item->tanggal,
                             'value' => $item->value,
@@ -177,11 +174,6 @@ class CashFlowMovementViewer extends Controller
                             'kategori' => [
                                 'id' => $item->kategori->id,
                                 'name' => $item->kategori->name,
-                            ],
-                            'pmg' => [
-                                'id' => $item->pmg->id,
-                                'nama' => $item->pmg->nama,
-                                'lokasi' => $item->pmg->lokasi,
                             ],
                             'pay_status' => [
                                 'id' => $item->payStatus->id,
@@ -208,7 +200,7 @@ class CashFlowMovementViewer extends Controller
         ];
     }
 
-    public function indexPeriodProfitability($tanggalAkhir, $idPmg)
+    public function indexPeriodProfitability($tanggalAkhir)
     {
         $tanggal = Carbon::parse($tanggalAkhir);
         $thisYear = $tanggal->year;
@@ -216,8 +208,7 @@ class CashFlowMovementViewer extends Controller
 
         // Fetch data for this year and last year
         $data = Profitablity::whereYear('tanggal', '>=', $lastYear)
-            ->where('pmg_id', $idPmg)
-            ->with('kategori', 'pmg')
+            ->with('kategori')
             ->get();
 
         if ($data->isEmpty()) {

@@ -23,7 +23,6 @@ class CreateCashFlowMovementTable extends Migration
         Schema::create('cash_flow_movement', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kategori_id')->constrained('kategori_cash_flow_movement');
-            $table->foreignId('pmg_id')->constrained('pmg');
             $table->date('tanggal');
             $table->decimal('value', 30, 2);
             $table->timestamps();

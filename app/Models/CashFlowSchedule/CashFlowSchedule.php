@@ -15,7 +15,6 @@ class CashFlowSchedule extends Model
 
     protected $fillable = [
         'kategori_id',
-        'pmg_id',
         'name',
         'tanggal',
         'value',
@@ -25,11 +24,6 @@ class CashFlowSchedule extends Model
     public function kategori()
     {
         return $this->belongsTo(KategoriCashFlowSchedule::class, 'kategori_id');
-    }
-
-    public function pmg()
-    {
-        return $this->belongsTo(Pmg::class, 'pmg_id');
     }
 
     public function payStatus()

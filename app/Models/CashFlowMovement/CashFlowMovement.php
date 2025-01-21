@@ -15,7 +15,6 @@ class CashFlowMovement extends Model
 
     protected $fillable = [
         'kategori_id',
-        'pmg_id',
         'tanggal',
         'value',
     ];
@@ -26,11 +25,6 @@ class CashFlowMovement extends Model
     public function kategori()
     {
         return $this->belongsTo(KategoriCashFlowMovement::class, 'kategori_id');
-    }
-
-    public function pmg()
-    {
-        return $this->belongsTo(Pmg::class, 'pmg_id');
     }
 
     /**

@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\CashFlowSchedule\CashFlowSchedule;
 use App\Models\CashFlowSchedule\KategoriCashFlowSchedule;
 use App\Models\CashFlowSchedule\PayStatusCashFlowSchedule;
-use App\Models\Master\Pmg;
 use App\Services\LoggerService;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -36,7 +35,7 @@ class CashFlowScheduleController extends Controller
     public function index()
     {
         try {
-            $data = CashFlowSchedule::with('kategori','pmg','payStatus')->get();
+            $data = CashFlowSchedule::with('kategori','payStatus')->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);
@@ -56,7 +55,7 @@ class CashFlowScheduleController extends Controller
     public function show($id)
     {
         try {
-            $data = CashFlowSchedule::with('kategori','pmg','payStatus')->findOrFail($id);
+            $data = CashFlowSchedule::with('kategori','payStatus')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -83,7 +82,6 @@ class CashFlowScheduleController extends Controller
         try {
             $rules = [
                 'kategori_id' => 'required|exists:' . KategoriCashFlowSchedule::class . ',id',
-                'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'pay_status_id' => 'required|exists:' . PayStatusCashFlowSchedule::class . ',id',
                 'name' => 'required',
                 'tanggal' => 'required|date',
@@ -128,7 +126,6 @@ class CashFlowScheduleController extends Controller
         try {
             $rules = [
                 'kategori_id' => 'required|exists:' . KategoriCashFlowSchedule::class . ',id',
-                'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'pay_status_id' => 'required|exists:' . PayStatusCashFlowSchedule::class . ',id',
                 'name' => 'required',
                 'tanggal' => 'required|date',
@@ -173,11 +170,10 @@ class CashFlowScheduleController extends Controller
     public function indexPeriod(Request $request)
     {
         $tanggalAkhir = $request->tanggalAkhir;
-        $idPmg = $request->idPmg;
 
         try {
 
-            $data = $this->cashFlowMovementViewer->indexPeriodCashFlowSchedule($tanggalAkhir, $idPmg);
+            $data = $this->cashFlowMovementViewer->indexPeriodCashFlowSchedule($tanggalAkhir);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 

@@ -30,7 +30,6 @@ class CreateCashFlowScheduleTable extends Migration
         Schema::create('cash_flow_schedule', function (Blueprint $table) {
             $table->id();
             $table->foreignId('kategori_id')->constrained('kategori_cash_flow_schedule');
-            $table->foreignId('pmg_id')->constrained('pmg');
             $table->string('name');
             $table->date('tanggal');
             $table->decimal('value', 30, 2);

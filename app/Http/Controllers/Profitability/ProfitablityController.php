@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Profitability;
 
 use App\Http\Controllers\CashFlowMovementViewer;
 use App\Http\Controllers\Controller;
-use App\Models\Master\Pmg;
 use App\Models\Profitablity\KategoriProfitablity;
 use App\Models\Profitablity\Profitablity;
 use App\Services\LoggerService;
@@ -35,7 +34,7 @@ class ProfitablityController extends Controller
     public function index()
     {
         try {
-            $data = Profitablity::with('kategori','pmg')->get();
+            $data = Profitablity::with('kategori')->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);
@@ -55,7 +54,7 @@ class ProfitablityController extends Controller
     public function show($id)
     {
         try {
-            $data = Profitablity::with('kategori','pmg')->findOrFail($id);
+            $data = Profitablity::with('kategori')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -82,7 +81,6 @@ class ProfitablityController extends Controller
         try {
             $rules = [
                 'kategori_id' => 'required|exists:' . KategoriProfitablity::class . ',id',
-                'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
                 'value' => 'required|numeric'
             ];
@@ -101,7 +99,6 @@ class ProfitablityController extends Controller
             $month = $tanggal->month;
 
             $existingEntry = Profitablity::where('kategori_id', $request->kategori_id)
-                                        ->where('pmg_id', $request->pmg_id)
                                         ->whereYear('tanggal', $year)
                                         ->whereMonth('tanggal', $month)
                                         ->first();
@@ -142,7 +139,6 @@ class ProfitablityController extends Controller
         try {
             $rules = [
                 'kategori_id' => 'required|exists:' . KategoriProfitablity::class . ',id',
-                'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
                 'value' => 'required|numeric'
             ];
@@ -164,7 +160,6 @@ class ProfitablityController extends Controller
             $month = $tanggal->month;
 
             $existingEntry = Profitablity::where('kategori_id', $request->kategori_id)
-                        ->where('pmg_id', $request->pmg_id)
                         ->whereYear('tanggal', $year)
                         ->whereMonth('tanggal', $month)
                         ->where('id', '!=', $id)
@@ -203,11 +198,10 @@ class ProfitablityController extends Controller
     public function indexPeriod(Request $request)
     {
         $tanggalAkhir = $request->tanggalAkhir;
-        $idPmg = $request->idPmg;
 
         try {
 
-            $data = $this->cashFlowMovementViewer->indexPeriodProfitability($tanggalAkhir, $idPmg);
+            $data = $this->cashFlowMovementViewer->indexPeriodProfitability($tanggalAkhir);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 

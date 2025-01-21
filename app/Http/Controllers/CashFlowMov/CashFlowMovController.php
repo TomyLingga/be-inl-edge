@@ -35,7 +35,7 @@ class CashFlowMovController extends Controller
     public function index()
     {
         try {
-            $data = CashFlowMovement::with('kategori','pmg')->get();
+            $data = CashFlowMovement::with('kategori')->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);
@@ -55,7 +55,7 @@ class CashFlowMovController extends Controller
     public function show($id)
     {
         try {
-            $data = CashFlowMovement::with('kategori','pmg')->findOrFail($id);
+            $data = CashFlowMovement::with('kategori')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -82,7 +82,6 @@ class CashFlowMovController extends Controller
         try {
             $rules = [
                 'kategori_id' => 'required|exists:' . KategoriCashFlowMovement::class . ',id',
-                'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
                 'value' => 'required|numeric'
             ];
@@ -101,7 +100,6 @@ class CashFlowMovController extends Controller
             $month = $tanggal->month;
 
             $existingEntry = CashFlowMovement::where('kategori_id', $request->kategori_id)
-                                        ->where('pmg_id', $request->pmg_id)
                                         ->whereYear('tanggal', $year)
                                         ->whereMonth('tanggal', $month)
                                         ->first();
@@ -142,7 +140,6 @@ class CashFlowMovController extends Controller
         try {
             $rules = [
                 'kategori_id' => 'required|exists:' . KategoriCashFlowMovement::class . ',id',
-                'pmg_id' => 'required|exists:' . Pmg::class . ',id',
                 'tanggal' => 'required|date',
                 'value' => 'required|numeric'
             ];
@@ -164,7 +161,6 @@ class CashFlowMovController extends Controller
             $month = $tanggal->month;
 
             $existingEntry = CashFlowMovement::where('kategori_id', $request->kategori_id)
-                        ->where('pmg_id', $request->pmg_id)
                         ->whereYear('tanggal', $year)
                         ->whereMonth('tanggal', $month)
                         ->where('id', '!=', $id)
