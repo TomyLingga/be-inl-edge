@@ -67,7 +67,10 @@ class PackagingViewer extends Controller
             })
             ->values(); // Re-index the jenis group
 
-        return $groupedData;
+            return [
+                "summary" => $groupedData,
+                "dataPeriod" => $data,
+            ];
     }
 
     public function indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging)
