@@ -58,7 +58,7 @@ class LaporanPackagingController extends Controller
     public function show($id)
     {
         try {
-            $data = LaporanPackaging::withwith([
+            $data = LaporanPackaging::with([
                 'itemPackaging.jenisLaporan',
                 'itemPackaging.productHasil',
                 'packaging'
