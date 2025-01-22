@@ -291,6 +291,40 @@ class CashFlowMovementViewer extends Controller
             }
         }
 
+        // Calculate total values for thisYear
+        $totalLabaKotorThisYear = $totalEbitdaThisYear = $totalLabaBersihThisYear = 0;
+        foreach ($result['thisYear']['months'] as $monthData) {
+            $totalLabaKotorThisYear += $monthData['labaKotor'];
+            $totalEbitdaThisYear += $monthData['ebitda'];
+            $totalLabaBersihThisYear += $monthData['labaBersih'];
+        }
+
+        // Get latest month and the month before it (last month)
+        $latestMonthData = end($result['thisYear']['months']);
+        $lastMonthData = count($result['thisYear']['months']) > 1 ? prev($result['thisYear']['months']) : null;
+
+        // Prepare latestMonth data
+        $latestMonth = [
+            'year' => $thisYear,
+            'month' => $latestMonthData['month'],
+            'pendapatan' => $latestMonthData['pendapatan'],
+            'targetPendapatanRkap' => $latestMonthData['targetPendapatanRkap'],
+            'totalLabaKotor' => $totalLabaKotorThisYear,
+            'labaKotorLastMonth' => $lastMonthData['labaKotor'] ?? 0,
+            'labaKotor' => $latestMonthData['labaKotor'],
+            'gpmPercent' => $latestMonthData['gpmPercent'],
+            'totalEbitda' => $totalEbitdaThisYear,
+            'ebitdaLastMonth' => $lastMonthData['ebitda'] ?? 0,
+            'ebitda' => $latestMonthData['ebitda'],
+            'ebitdaPercent' => $latestMonthData['ebitdaPercent'],
+            'totallabaBersih' => $totalLabaBersihThisYear,
+            'labaBersihLastMonth' => $lastMonthData['labaBersih'] ?? 0,
+            'labaBersih' => $latestMonthData['labaBersih'],
+            'npmPercent' => $latestMonthData['npmPercent'],
+        ];
+
+        $result['latestMonth'] = $latestMonth;
+
         // Sort months
         foreach (['thisYear', 'lastYear'] as $key) {
             usort($result[$key]['months'], fn($a, $b) => $a['month'] <=> $b['month']);
@@ -298,6 +332,7 @@ class CashFlowMovementViewer extends Controller
 
         return $result;
     }
+
 
 
 }
