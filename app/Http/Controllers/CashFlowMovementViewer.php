@@ -312,14 +312,17 @@ class CashFlowMovementViewer extends Controller
             'totalLabaKotor' => $totalLabaKotorThisYear,
             'labaKotorLastMonth' => $lastMonthData['labaKotor'] ?? 0,
             'labaKotor' => $latestMonthData['labaKotor'],
+            'gpmPercentLastMonth' => $lastMonthData['gpmPercent'],
             'gpmPercent' => $latestMonthData['gpmPercent'],
             'totalEbitda' => $totalEbitdaThisYear,
             'ebitdaLastMonth' => $lastMonthData['ebitda'] ?? 0,
             'ebitda' => $latestMonthData['ebitda'],
+            'ebitdaPercentLastMonth' => $lastMonthData['ebitdaPercent'],
             'ebitdaPercent' => $latestMonthData['ebitdaPercent'],
             'totallabaBersih' => $totalLabaBersihThisYear,
             'labaBersihLastMonth' => $lastMonthData['labaBersih'] ?? 0,
             'labaBersih' => $latestMonthData['labaBersih'],
+            'npmPercentLastMonth' => $lastMonthData['npmPercent'],
             'npmPercent' => $latestMonthData['npmPercent'],
         ];
 
