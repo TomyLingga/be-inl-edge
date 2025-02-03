@@ -20,7 +20,12 @@ class CpoKpbnViewer extends Controller
                     ->orderBy('tanggal', 'asc') // Ensure kurs is sorted by tanggal
                     ->get();
 
-        if ($data->isEmpty() || $kurs->isEmpty()) {
+        // Set default kurs if empty
+        if ($kurs->isEmpty()) {
+            $kurs = collect([['value' => 1]]); // Default kurs value to 1
+        }
+
+        if ($data->isEmpty()) {
             return null;
         }
 
@@ -32,7 +37,7 @@ class CpoKpbnViewer extends Controller
         $latestCpoDate = $latestCpoData->tanggal;
 
         $latestKursData = $kurs->sortByDesc('tanggal')->first();
-        $latestKursValue = $latestKursData->value;
+        $latestKursValue = $latestKursData['value'];
 
         $groupedData = $data->groupBy(function ($item) {
             return Carbon::parse($item->tanggal)->format('Y-m');
@@ -54,12 +59,10 @@ class CpoKpbnViewer extends Controller
             // Map details and calculate valueAsing for the month
             $details = $items->map(function ($item) use ($kurs, &$totalAsingValues) {
                 $matchedKurs = $kurs->where('tanggal', $item->tanggal)->first();
-                $kursValue = $matchedKurs ? $matchedKurs->value : null;
-                $valueAsing = $kursValue ? round(($item->value / $kursValue) * 1000, 2) : null;
+                $kursValue = $matchedKurs ? $matchedKurs['value'] : 1; // Default to 1 if not found
+                $valueAsing = round(($item->value / $kursValue) * 1000, 2);
 
-                if ($valueAsing !== null) {
-                    $totalAsingValues[] = $valueAsing; // Add valueAsing to total for global average
-                }
+                $totalAsingValues[] = $valueAsing;
 
                 return [
                     'id' => $item->id,
@@ -83,10 +86,9 @@ class CpoKpbnViewer extends Controller
 
         $years = array_values($result);
 
-
         return [
             'averageTotal' => $averageTotal,
-            'averageAsingTotal' => $averageTotal/$averageKurs*1000,
+            'averageAsingTotal' => $averageTotal / $averageKurs * 1000,
             'averageKurs' => $averageKurs,
             'latestCpoValue' => $latestCpoValue,
             'latestCpoDate' => $latestCpoDate,
@@ -95,7 +97,6 @@ class CpoKpbnViewer extends Controller
             'years' => $years,
         ];
     }
-
 
 
     public function indexPeriodKurs($tanggalAwal, $tanggalAkhir, $idMataUang)
