@@ -87,7 +87,7 @@ class CpoKpbnViewer extends Controller
 
         return [
             'averageTotal' => $averageTotal,
-            'averageAsingTotal' => ($averageKurs != 0) ? round(($averageTotal / $averageKurs) * 1000, 2) : null,
+            'averageAsingTotal' => ($averageKurs != 0) ? round(($averageTotal / $averageKurs) * 1000, 2) : 0,
             'averageKurs' => $averageKurs,
             'latestCpoValue' => $latestCpoValue,
             'latestCpoDate' => $latestCpoDate,
