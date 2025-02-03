@@ -22,7 +22,7 @@ class CpoKpbnViewer extends Controller
 
         // Set default kurs if empty
         if ($kurs->isEmpty()) {
-            $kurs = collect([['value' => 1]]); // Default kurs value to 1
+            $kurs = collect([['value' => 0]]); // Default kurs value to 1
         }
 
         if ($data->isEmpty()) {
@@ -59,7 +59,7 @@ class CpoKpbnViewer extends Controller
             // Map details and calculate valueAsing for the month
             $details = $items->map(function ($item) use ($kurs, &$totalAsingValues) {
                 $matchedKurs = $kurs->where('tanggal', $item->tanggal)->first();
-                $kursValue = $matchedKurs ? $matchedKurs['value'] : 1; // Default to 1 if not found
+                $kursValue = $matchedKurs ? $matchedKurs['value'] : 0; // Default to 1 if not found
                 $valueAsing = round(($item->value / $kursValue) * 1000, 2);
 
                 $totalAsingValues[] = $valueAsing;
