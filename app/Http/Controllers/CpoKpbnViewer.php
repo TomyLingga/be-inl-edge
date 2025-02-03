@@ -60,8 +60,7 @@ class CpoKpbnViewer extends Controller
             $details = $items->map(function ($item) use ($kurs, &$totalAsingValues) {
                 $matchedKurs = $kurs->where('tanggal', $item->tanggal)->first();
                 $kursValue = $matchedKurs ? $matchedKurs['value'] : 0; // Default to 1 if not found
-                $valueAsing = round(($item->value / $kursValue) * 1000, 2);
-
+                $valueAsing = ($kursValue != 0) ? round(($item->value / $kursValue) * 1000, 2) : 0;
                 $totalAsingValues[] = $valueAsing;
 
                 return [
