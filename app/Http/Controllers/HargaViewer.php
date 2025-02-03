@@ -40,7 +40,7 @@ class HargaViewer extends Controller
         // Attach kurs and calculate foreign prices only for bulk products
         $latestHarga->each(function ($item) use ($kursMap) {
             $kursValue = $kursMap->get($item->tanggal)->value ?? 0;
-            $item->kurs = $kursValue > 0 ? $kursValue : 1; // Default to 1 if kurs is 0
+            $item->kurs = $kursValue > 0 ? $kursValue : 0; // Default to 1 if kurs is 0
 
             if ($item->product->jenis === 'bulk') {
                 $item->hargaAsingSpot = $kursValue > 0 ? round(($item->spot / $kursValue) * 1000, 2) : 0;
