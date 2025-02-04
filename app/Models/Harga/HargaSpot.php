@@ -7,13 +7,13 @@ use App\Models\Master\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Harga extends Model
+class HargaSpot extends Model
 {
     use HasFactory;
 
     protected $table = 'harga';
 
-    protected $fillable = ['id_product', 'tanggal', 'inventory'];
+    protected $fillable = ['id_product', 'tanggal', 'spot'];
 
     /**
      * Relation to Product

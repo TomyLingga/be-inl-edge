@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateHargaSpotTable extends Migration
+class CreateHargaTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class CreateHargaSpotTable extends Migration
      */
     public function up()
     {
-        Schema::create('harga', function (Blueprint $table) {
+        Schema::create('harga_spot', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_product')->constrained('product');
             $table->date('tanggal');
-            $table->decimal('inventory', 30, 2);
+            $table->decimal('spot', 30, 2);
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ class CreateHargaSpotTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('harga');
+        Schema::dropIfExists('harga_spot');
     }
 }

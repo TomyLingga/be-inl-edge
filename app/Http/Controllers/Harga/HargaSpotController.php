@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Harga;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\HargaViewer;
-use App\Models\Harga\Harga;
+use App\Models\Harga\HargaSpot;
 use App\Models\Master\Product;
 use App\Services\LoggerService;
 use Illuminate\Database\QueryException;
@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class HargaController extends Controller
+class HargaSpotController extends Controller
 {
     protected $hargaViewer;
 
@@ -33,7 +33,7 @@ class HargaController extends Controller
     public function index()
     {
         try {
-            $data = Harga::with('product')->get();
+            $data = HargaSpot::with('product')->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);
@@ -53,7 +53,7 @@ class HargaController extends Controller
     public function show($id)
     {
         try {
-            $data = Harga::with('product')->findOrFail($id);
+            $data = HargaSpot::with('product')->findOrFail($id);
 
             $data->history = $this->formatLogs($data->logs);
             unset($data->logs);
@@ -81,7 +81,7 @@ class HargaController extends Controller
             $rules = [
                 'id_product' => 'required|exists:' . Product::class . ',id',
                 'tanggal' => 'required|date',
-                'inventory' => 'required|numeric'
+                'spot' => 'required|numeric',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -93,7 +93,7 @@ class HargaController extends Controller
                 ], 400);
             }
 
-            $existingEntry = Harga::where('id_product', $request->id_product)
+            $existingEntry = HargaSpot::where('id_product', $request->id_product)
                                         ->whereDate('tanggal', $request->tanggal)
                                         ->first();
 
@@ -104,7 +104,7 @@ class HargaController extends Controller
                 ], 400);
             }
 
-            $data = Harga::create($request->all());
+            $data = HargaSpot::create($request->all());
 
             LoggerService::logAction($this->userData, $data, 'create', null, $data->toArray());
 
@@ -134,7 +134,7 @@ class HargaController extends Controller
             $rules = [
                 'id_product' => 'required|exists:' . Product::class . ',id',
                 'tanggal' => 'required|date',
-                'inventory' => 'required|numeric'
+                'spot' => 'required|numeric',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -146,10 +146,10 @@ class HargaController extends Controller
                 ], 400);
             }
 
-            $data = Harga::findOrFail($id);
+            $data = HargaSpot::findOrFail($id);
             $oldData = $data->toArray();
 
-            $existingEntry = Harga::where('id_product', $request->id_product)
+            $existingEntry = HargaSpot::where('id_product', $request->id_product)
                         ->whereDate('tanggal', $request->tanggal)
                         ->where('id', '!=', $id)
                         ->first();
@@ -192,7 +192,7 @@ class HargaController extends Controller
 
         try {
 
-            $data = $this->hargaViewer->indexPeriodHarga($tanggalAwal, $tanggalAkhir, $idMataUang);
+            $data = $this->hargaViewer->indexPeriodHargaSpot($tanggalAwal, $tanggalAkhir, $idMataUang);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 
