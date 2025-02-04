@@ -11,7 +11,7 @@ class HargaSpot extends Model
 {
     use HasFactory;
 
-    protected $table = 'harga';
+    protected $table = 'harga_spot';
 
     protected $fillable = ['id_product', 'tanggal', 'spot'];
 
