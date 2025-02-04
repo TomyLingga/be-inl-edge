@@ -23,7 +23,10 @@ class PackagingViewer extends Controller
         }
 
         // Get the laporan data for final value comparison
-        $dataLaporan = $this->indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging)['summary'];
+        $laporanData = $this->indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging);
+
+        // Handle null case
+        $dataLaporan = $laporanData['summary'] ?? [];
 
         // Group the data by 'jenis' (packaging type)
         $groupedData = $data->groupBy('jenis.id')
@@ -33,13 +36,14 @@ class PackagingViewer extends Controller
                 $jenisId = $jenisGroup->first()->jenis->id;
 
                 // Get the corresponding 'produk_hasil' data from the laporan
-                $produkHasilData = $dataLaporan->first(function ($item) use ($jenisName) {
-                    return $item['jenis_laporan'] === $jenisName;
-                });
+                $produkHasilData = collect($dataLaporan)->firstWhere('jenis_laporan', $jenisName);
 
-                // Extract final value for 'produk_hasil'
-                $finalValueProdukHasil = $produkHasilData['kategori_data']
-                    ->firstWhere('kategori', 'produk_hasil')['finalValue'] ?? 0;
+                // Handle if $produkHasilData is null
+                $finalValueProdukHasil = 0;
+                if ($produkHasilData && isset($produkHasilData['kategori_data'])) {
+                    $finalValueProdukHasil = collect($produkHasilData['kategori_data'])
+                        ->firstWhere('kategori', 'produk_hasil')['finalValue'] ?? 0;
+                }
 
                 // Calculate summary for each target
                 $targetSummary = $jenisGroup->groupBy('uraian.id')
@@ -67,11 +71,13 @@ class PackagingViewer extends Controller
             })
             ->values(); // Re-index the jenis group
 
-            return [
-                "summary" => $groupedData,
-                "dataPeriod" => $data,
-            ];
+        return [
+            "summary" => $groupedData,
+            "dataPeriod" => $data,
+        ];
     }
+
+
 
     public function indexPeriodLaporanPackaging($tanggalAwal, $tanggalAkhir, $idPackaging)
     {
