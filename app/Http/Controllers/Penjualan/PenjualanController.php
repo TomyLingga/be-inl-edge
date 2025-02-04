@@ -91,7 +91,8 @@ class PenjualanController extends Controller
                 'tanggal' => 'required|date',
                 'qty' => 'required|numeric',
                 'harga_satuan' => 'required|numeric',
-                'margin_percent' => 'required|numeric'
+                'margin_percent' => 'required|numeric',
+                'kontrak' => 'required',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -136,7 +137,8 @@ class PenjualanController extends Controller
                 'tanggal' => 'required|date',
                 'qty' => 'required|numeric',
                 'harga_satuan' => 'required|numeric',
-                'margin_percent' => 'required|numeric'
+                'margin_percent' => 'required|numeric',
+                'kontrak' => 'required'
             ];
 
             $validator = Validator::make($request->all(), $rules);

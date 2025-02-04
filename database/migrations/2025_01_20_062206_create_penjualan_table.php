@@ -32,6 +32,7 @@ class CreatePenjualanTable extends Migration
         Schema::create('laporan_penjualan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained('product');
+            $table->string('kontrak');
             $table->decimal('qty', 30, 2);
             $table->decimal('harga_satuan', 30, 2);
             $table->date('tanggal');

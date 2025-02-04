@@ -21,6 +21,7 @@ class LaporanPenjualan extends Model
         'qty',
         'harga_satuan',
         'margin_percent',
+        'kontrak'
     ];
 
     /**
