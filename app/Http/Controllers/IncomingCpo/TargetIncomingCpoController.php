@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\IncomingCpo;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\CpoKpbnViewer;
 use App\Models\IncomingCpo\TargetIncomingCpo;
 use App\Services\LoggerService;
 use Carbon\Carbon;
@@ -19,6 +20,15 @@ class TargetIncomingCpoController extends Controller
     private $messageSuccess = 'Success to Fetch Data';
     private $messageCreate = 'Success to Create Data';
     private $messageUpdate = 'Success to Update Data';
+
+    protected $cpoKpbnViewer;
+
+    public function __construct(CpoKpbnViewer $cpoKpbnViewer)
+    {
+        parent::__construct();
+
+        $this->cpoKpbnViewer = $cpoKpbnViewer;
+    }
 
     public function index()
     {
@@ -171,6 +181,27 @@ class TargetIncomingCpoController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollback();
+            return response()->json([
+                'message' => $this->messageFail,
+                'err' => $e->getTrace()[0],
+                'errMsg' => $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
+    }
+
+    public function indexPeriod(Request $request)
+    {
+        $tanggalAwal = $request->tanggalAwal;
+        $tanggalAkhir = $request->tanggalAkhir;
+
+        try {
+
+            $data = $this->cpoKpbnViewer->indexPeriodTargetIncomingCpo($tanggalAwal, $tanggalAkhir);
+
+            return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
+
+        } catch (QueryException $e) {
             return response()->json([
                 'message' => $this->messageFail,
                 'err' => $e->getTrace()[0],

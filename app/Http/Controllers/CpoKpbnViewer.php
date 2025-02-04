@@ -113,7 +113,7 @@ class CpoKpbnViewer extends Controller
         return $data;
     }
 
-    public function indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir, $idMataUang)
+    public function indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir)
     {
         $data = IncomingCpo::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->with('source') // Load the related source
@@ -188,7 +188,19 @@ class CpoKpbnViewer extends Controller
         ];
     }
 
+    public function indexPeriodTargetIncomingCpo($tanggalAwal, $tanggalAkhir)
+    {
+        $data = TargetIncomingCpo::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->orderBy('tanggal', 'asc')
+            ->get();
 
+        if ($data->isEmpty()) {
+            return response()->json([
+                'data' => null,
+                'message' => 'No data found for the given period.',
+            ]);
+        }
 
-
+        return $data;
+    }
 }

@@ -201,11 +201,10 @@ class IncomingCpoController extends Controller
     {
         $tanggalAwal = $request->tanggalAwal;
         $tanggalAkhir = $request->tanggalAkhir;
-        $idMataUang = $request->idMataUang;
 
         try {
 
-            $data = $this->cpoKpbnViewer->indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir, $idMataUang);
+            $data = $this->cpoKpbnViewer->indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir);
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 

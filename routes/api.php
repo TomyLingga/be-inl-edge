@@ -42,6 +42,7 @@ Route::get('source-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\SourcingInco
 
 Route::get('target-income-cpo', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'index']);
 Route::get('target-income-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'show']);
+Route::post('target-income-cpo/period', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'indexPeriod']);
 
 Route::get('matauang', [App\Http\Controllers\Kurs\MataUangController::class, 'index']);
 Route::get('matauang/get/{id}', [App\Http\Controllers\Kurs\MataUangController::class, 'show']);
