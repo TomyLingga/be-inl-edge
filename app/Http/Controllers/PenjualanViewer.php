@@ -191,6 +191,7 @@ class PenjualanViewer extends Controller
                     return [
                         'id' => $item->id,
                         'product_id' => $item->product_id,
+                        'kontrak' => $item->kontrak,
                         'qty' => $item->qty,
                         'harga_satuan' => $item->harga_satuan,
                         'tanggal' => $item->tanggal,
