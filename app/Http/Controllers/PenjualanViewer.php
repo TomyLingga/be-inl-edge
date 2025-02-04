@@ -23,6 +23,9 @@ class PenjualanViewer extends Controller
         // Retrieve actual penjualan data
         $dataPenjualan = $this->indexPeriodPenjualan($tanggalAwal, $tanggalAkhir);
 
+        // Ensure $dataPenjualan contains the expected structure
+        $dataPenjualan = $dataPenjualan ?? ['bulk' => ['products' => [], 'totalQtyKategori' => 0], 'ritel' => ['products' => [], 'totalQtyKategori' => 0]];
+
         $groupedData = $data->groupBy('product_id')->map(function ($items) {
             $product = $items->first()->product;
 
@@ -51,79 +54,59 @@ class PenjualanViewer extends Controller
         })->values();
 
         // Filter data by kategori: bulk and ritel
-        $groupedDataBulk = $groupedData->filter(function ($item) {
-            return $item['jenis'] === 'bulk';
-        })->values();
-
-        $groupedDataRitel = $groupedData->filter(function ($item) {
-            return $item['jenis'] === 'ritel';
-        })->values();
+        $groupedDataBulk = $groupedData->filter(fn($item) => $item['jenis'] === 'bulk')->values();
+        $groupedDataRitel = $groupedData->filter(fn($item) => $item['jenis'] === 'ritel')->values();
 
         // Calculate totalQtyTargetKategori for bulk and ritel
-        $totalQtyBulk = $groupedDataBulk->sum(function ($item) {
-            return $item['target']->sum('totalQtyTarget');
-        });
+        $totalQtyBulk = $groupedDataBulk->sum(fn($item) => $item['target']->sum('totalQtyTarget'));
+        $totalQtyRitel = $groupedDataRitel->sum(fn($item) => $item['target']->sum('totalQtyTarget'));
 
-        $totalQtyRitel = $groupedDataRitel->sum(function ($item) {
-            return $item['target']->sum('totalQtyTarget');
-        });
-
-        $totalQtyBulkPenjualan = isset($dataPenjualan['bulk']) ? $dataPenjualan['bulk']['totalQtyKategori'] : 0;
-        $totalQtyRitelPenjualan = isset($dataPenjualan['ritel']) ? $dataPenjualan['ritel']['totalQtyKategori'] : 0;
+        $totalQtyBulkPenjualan = $dataPenjualan['bulk']['totalQtyKategori'] ?? 0;
+        $totalQtyRitelPenjualan = $dataPenjualan['ritel']['totalQtyKategori'] ?? 0;
 
         $percentageQtyToTargetBulk = $totalQtyBulk === 0 ? 0 : ($totalQtyBulkPenjualan / $totalQtyBulk) * 100;
         $percentageQtyToTargetRitel = $totalQtyRitel === 0 ? 0 : ($totalQtyRitelPenjualan / $totalQtyRitel) * 100;
 
-        // Add dataPenjualan's totalQty and percentage to the return
+        // Handle products mapping
+        $mapProducts = function ($groupedData, $kategori) use ($dataPenjualan) {
+            return $groupedData->map(function ($product) use ($dataPenjualan, $kategori) {
+                // Check if products exist in dataPenjualan before accessing
+                $productPenjualan = isset($dataPenjualan[$kategori]['products'])
+                    ? collect($dataPenjualan[$kategori]['products'])->firstWhere('idProduct', $product['idProduct'])
+                    : null;
+
+                $totalQtyProductPenjualan = $productPenjualan['totalQty'] ?? 0;
+
+                // Map the targets and add percentage to each target
+                $product['target'] = $product['target']->map(function ($target) use ($totalQtyProductPenjualan) {
+                    $percentageQtyToTarget = $totalQtyProductPenjualan === 0 ? 0 : ($totalQtyProductPenjualan / $target['totalQtyTarget']) * 100;
+                    $target['percentageQtyToTarget'] = $percentageQtyToTarget;
+                    return $target;
+                });
+
+                // Add totalQty for the product
+                $product['totalQty'] = $totalQtyProductPenjualan;
+
+                return $product;
+            });
+        };
+
         return [
             'bulk' => [
                 'totalQtyTargetKategori' => $totalQtyBulk,
                 'totalQtyKategori' => $totalQtyBulkPenjualan,
                 'percentageQtyToTargetKategori' => $percentageQtyToTargetBulk,
-                'products' => $groupedDataBulk->map(function ($product) use ($dataPenjualan) {
-                    // Get the total quantity for each product in dataPenjualan
-                    $productPenjualan = collect($dataPenjualan['bulk']['products'])->firstWhere('idProduct', $product['idProduct']);
-                    $totalQtyProductPenjualan = $productPenjualan ? $productPenjualan['totalQty'] : 0;
-
-                    // Map the targets and add percentage to each target
-                    $product['target'] = $product['target']->map(function ($target) use ($totalQtyProductPenjualan) {
-                        $percentageQtyToTarget = $totalQtyProductPenjualan === 0 ? 0 : $totalQtyProductPenjualan / ($target['totalQtyTarget'] ) * 100;
-
-                        $target['percentageQtyToTarget'] = $percentageQtyToTarget;
-                        return $target;
-                    });
-
-                    // Add totalQty for the product
-                    $product['totalQty'] = $totalQtyProductPenjualan;
-
-                    return $product;
-                }),
+                'products' => $mapProducts($groupedDataBulk, 'bulk'),
             ],
             'ritel' => [
                 'totalQtyTargetKategori' => $totalQtyRitel,
                 'totalQtyKategori' => $totalQtyRitelPenjualan,
                 'percentageQtyToTargetKategori' => $percentageQtyToTargetRitel,
-                'products' => $groupedDataRitel->map(function ($product) use ($dataPenjualan) {
-                    // Get the total quantity for each product in dataPenjualan
-                    $productPenjualan = collect($dataPenjualan['ritel']['products'])->firstWhere('idProduct', $product['idProduct']);
-                    $totalQtyProductPenjualan = $productPenjualan ? $productPenjualan['totalQty'] : 0;
-
-                    // Map the targets and add percentage to each target
-                    $product['target'] = $product['target']->map(function ($target) use ($totalQtyProductPenjualan) {
-                        $percentageQtyToTarget = $totalQtyProductPenjualan === 0 ? 0 : $totalQtyProductPenjualan / ($target['totalQtyTarget'] ) * 100;
-
-                        $target['percentageQtyToTarget'] = $percentageQtyToTarget;
-                        return $target;
-                    });
-
-                    // Add totalQty for the product
-                    $product['totalQty'] = $totalQtyProductPenjualan;
-
-                    return $product;
-                }),
+                'products' => $mapProducts($groupedDataRitel, 'ritel'),
             ],
         ];
     }
+
 
 
 
