@@ -21,7 +21,6 @@ class HargaViewer extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        // Set default kurs value if empty
         if ($kurs->isEmpty()) {
             $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
         }
@@ -30,18 +29,13 @@ class HargaViewer extends Controller
             return null;
         }
 
-        // Group data by product and get the latest entry for each product
-        $latestHarga = $data->groupBy('id_product')->map(function ($group) {
-            return $group->sortByDesc('tanggal')->first();
-        })->values();
-
         // Map kurs data by tanggal
         $kursMap = $kurs->keyBy('tanggal');
 
-        // Attach kurs and calculate foreign prices only for bulk products
-        $latestHarga->each(function ($item) use ($kursMap) {
+        // Calculate prices for each item
+        $data->each(function ($item) use ($kursMap) {
             $kursValue = $kursMap->get($item->tanggal)->value ?? 0;
-            $item->kurs = $kursValue > 0 ? $kursValue : 0; // Default to 1 if kurs is 0
+            $item->kurs = $kursValue > 0 ? $kursValue : 0;
 
             if ($item->product->jenis === 'bulk') {
                 $item->hargaAsingInventory = $kursValue > 0 ? round(($item->inventory / $kursValue) * 1000, 2) : 0;
@@ -52,14 +46,31 @@ class HargaViewer extends Controller
             }
         });
 
-        // Separate bulk and ritel products and remove indices
-        [$latestHargaBulk, $latestHargaRitel] = $latestHarga->partition(function ($item) {
-            return $item->product->jenis === 'bulk';
-        });
+        // Separate bulk and ritel products
+        [$bulkData, $ritelData] = $data->partition(fn($item) => $item->product->jenis === 'bulk');
+
+        // Get the latest price per product
+        $latestHarga = $data->groupBy('id_product')->map(fn($group) => $group->sortByDesc('tanggal')->first())->values();
+
+        // Separate latest bulk and ritel prices
+        [$latestHargaBulk, $latestHargaRitel] = $latestHarga->partition(fn($item) => $item->product->jenis === 'bulk');
+
+        // Format period data into the required structure
+        $formatGroupedData = function ($collection) {
+            return $collection
+                ->groupBy(fn($item) => $item->product->name) // Group by product name
+                ->map(fn($items, $name) => [
+                    'name' => $name,
+                    'details' => $items->values(),
+                ])
+                ->values(); // Convert to indexed array
+        };
 
         return [
-            'latestHargaBulk' => $latestHargaBulk->values(), // Remove indices
-            'latestHargaRitel' => $latestHargaRitel->values(), // Remove indices
+            'latestHargaBulk' => $latestHargaBulk->values(),
+            'latestHargaRitel' => $latestHargaRitel->values(),
+            'periodHargaBulk' => ['products' => $formatGroupedData($bulkData)],
+            'periodHargaRitel' => ['products' => $formatGroupedData($ritelData)],
         ];
     }
 
@@ -75,7 +86,6 @@ class HargaViewer extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        // Set default kurs value if empty
         if ($kurs->isEmpty()) {
             $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
         }
@@ -84,38 +94,48 @@ class HargaViewer extends Controller
             return null;
         }
 
-        // Group data by product and get the latest entry for each product
-        $latestHarga = $data->groupBy('id_product')->map(function ($group) {
-            return $group->sortByDesc('tanggal')->first();
-        })->values();
-
         // Map kurs data by tanggal
         $kursMap = $kurs->keyBy('tanggal');
 
-        // Attach kurs and calculate foreign prices only for bulk products
-
-        $latestHarga->each(function ($item) use ($kursMap) {
+        // Calculate prices for each item
+        $data->each(function ($item) use ($kursMap) {
             $kursValue = $kursMap->get($item->tanggal)->value ?? 0;
-            $item->kurs = $kursValue > 0 ? $kursValue : 0; // Default to 1 if kurs is 0
+            $item->kurs = $kursValue > 0 ? $kursValue : 0;
 
             if ($item->product->jenis === 'bulk') {
                 $item->hargaAsingSpot = $kursValue > 0 ? round(($item->spot / $kursValue) * 1000, 2) : 0;
-
             } else {
                 $item->hargaBoxSpot = $item->product->konversi_pouch > 0 ? round($item->product->konversi_pouch * $item->spot, 2) : 0;
                 $item->hargaAsingSpot = $kursValue > 0 ? round($item->spot / $kursValue, 2) : 0;
                 $item->hargaAsingBoxSpot = $kursValue > 0 ? round($item->hargaBoxSpot / $kursValue, 2) : 0;
-                            }
+            }
         });
 
-        // Separate bulk and ritel products and remove indices
-        [$latestHargaBulk, $latestHargaRitel] = $latestHarga->partition(function ($item) {
-            return $item->product->jenis === 'bulk';
-        });
+        // Separate bulk and ritel products
+        [$bulkData, $ritelData] = $data->partition(fn($item) => $item->product->jenis === 'bulk');
+
+        // Get the latest price per product
+        $latestHarga = $data->groupBy('id_product')->map(fn($group) => $group->sortByDesc('tanggal')->first())->values();
+
+        // Separate latest bulk and ritel prices
+        [$latestHargaBulk, $latestHargaRitel] = $latestHarga->partition(fn($item) => $item->product->jenis === 'bulk');
+
+        // Format period data into the required structure
+        $formatGroupedData = function ($collection) {
+            return $collection
+                ->groupBy(fn($item) => $item->product->name) // Group by product name
+                ->map(fn($items, $name) => [
+                    'name' => $name,
+                    'details' => $items->values(),
+                ])
+                ->values(); // Convert to indexed array
+        };
 
         return [
-            'latestHargaBulk' => $latestHargaBulk->values(), // Remove indices
-            'latestHargaRitel' => $latestHargaRitel->values(), // Remove indices
+            'latestHargaBulk' => $latestHargaBulk->values(),
+            'latestHargaRitel' => $latestHargaRitel->values(),
+            'periodHargaBulk' => ['products' => $formatGroupedData($bulkData)],
+            'periodHargaRitel' => ['products' => $formatGroupedData($ritelData)],
         ];
     }
 
