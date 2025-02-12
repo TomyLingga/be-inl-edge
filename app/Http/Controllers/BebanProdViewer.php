@@ -143,12 +143,12 @@ class BebanProdViewer extends Controller
                 [
                     'nama'  => 'RKAP',
                     'value' => number_format(0, 2, '.', ''), // Default value for CPO Olah
-                    'percentage' => number_format(0, 2, '.', ''), // Default percentage
+                    'percentage' => number_format(100, 2, '.', ''), // Default percentage
                 ],
                 [
                     'nama'     => 'Kapasitas Utility',
                     'value'    => number_format(0, 2, '.', ''), // Default target value
-                    'percentage' => number_format(0, 2, '.', ''), // Default percentage
+                    'percentage' => number_format(100, 2, '.', ''), // Default percentage
                 ],
             ];
 
