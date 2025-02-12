@@ -138,7 +138,7 @@ class BebanProdViewer extends Controller
             $resultData = [
                 [
                     'nama'  => 'CPO Olah',
-                    'value' => number_format(0, 2, '.', ''), // Default value for CPO Olah
+                    'value' => number_format($totalOlahRefinery, 2, '.', ''), // Default value for CPO Olah
                 ],
                 [
                     'nama'  => 'RKAP',
