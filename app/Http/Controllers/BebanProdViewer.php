@@ -114,13 +114,6 @@ class BebanProdViewer extends Controller
             ->with('uraian')
             ->get();
 
-        if ($data->isEmpty()) {
-            return response()->json([
-                'data' => [],
-                'message' => 'No data found for the given period',
-            ], 404);
-        }
-
         $dataAll = TargetProduksi::whereBetween('tanggal', [$startDate, $endDate])
                 ->where('pmg_id', $idPmg)
                 ->get();
@@ -131,7 +124,7 @@ class BebanProdViewer extends Controller
             ->get();
 
         if ($dataOlah->isEmpty()) {
-            $totalOlahRefinery = 1;
+            $totalOlahRefinery = 0;
         }else{
             $totalOlahRefinery = $dataOlah
                 ->filter(function ($item) {
@@ -139,6 +132,31 @@ class BebanProdViewer extends Controller
                         $item->itemProduksi->jenisLaporan->name === 'Refinery';
                 })
                 ->sum('qty');
+        }
+
+        if ($data->isEmpty()) {
+            $resultData = [
+                [
+                    'nama'  => 'CPO Olah',
+                    'value' => number_format(0, 2, '.', ''), // Default value for CPO Olah
+                ],
+                [
+                    'nama'  => 'RKAP',
+                    'value' => number_format(0, 2, '.', ''), // Default value for CPO Olah
+                    'percentage' => number_format(0, 2, '.', ''), // Default percentage
+                ],
+                [
+                    'nama'     => 'Kapasitas Utility',
+                    'value'    => number_format(0, 2, '.', ''), // Default target value
+                    'percentage' => number_format(0, 2, '.', ''), // Default percentage
+                ],
+            ];
+
+            return [
+                    'cpoOlah' => 0,
+                    'summary' => $resultData,
+                    'detail'  => [], // No details since there's no data
+            ];
         }
 
         $resultData = [
