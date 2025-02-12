@@ -48,6 +48,10 @@ class StockViewer extends Controller
             return null;
         }
 
+        $chartData = $data->groupBy('id_bulky')->map(function ($group) {
+            return $group;
+        })->values();
+
         $latestStockBulk = $data->groupBy('tanki_id')->map(function ($group) {
             return $group->sortByDesc('tanggal')->first();
         })->values();
@@ -67,12 +71,22 @@ class StockViewer extends Controller
         return [
             'total' => $totals,
             'details' => $latestStockBulk,
+            'chart' => $chartData,
         ];
     }
 
     public function indexPeriodStockRetail($tanggalAwal, $tanggalAkhir)
     {
         // Fetch data based on the given date range and relations
+        $dataPeriod = StockRetail::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->with(['warehouse.lokasi', 'product'])
+            ->orderBy('tanggal', 'desc') // Ensure records are ordered by date in descending order
+            ->get();
+
+        $chartData = $dataPeriod->groupBy('id_ritel')->map(function ($group) {
+            return $group;
+        })->values();
+
         $data = StockRetail::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->with(['warehouse.lokasi', 'product'])
             ->select('id', 'id_ritel', 'warehouse_id', 'tanggal', 'qty', 'umur', 'remarks', 'created_at', 'updated_at')
@@ -153,7 +167,8 @@ class StockViewer extends Controller
         // Return the data with the total information
         return [
             'total' => $total,
-            'warehouse' => $data
+            'warehouse' => $data,
+            'chart' => $chartData,
         ];
     }
 
