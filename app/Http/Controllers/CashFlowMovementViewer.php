@@ -233,7 +233,6 @@ class CashFlowMovementViewer extends Controller
             'lastYear' => ['year' => $lastYear, 'months' => []],
         ];
 
-        // Process grouped data
         foreach ($data as $monthYear => $items) {
             [$year, $month] = explode('-', $monthYear);
             $month = (int)$month;
@@ -245,12 +244,20 @@ class CashFlowMovementViewer extends Controller
             $pendapatan = $pendapatanByMonth[$monthYear] ?? 0;
             $targetPendapatanRkap = $items->firstWhere('kategori.name', 'Target Pendapatan RKAP')?->value ?? 0;
             $labaKotor = $items->firstWhere('kategori.name', 'Laba Kotor')?->value ?? 0;
+            $targetLabaKotorRkap = $items->firstWhere('kategori.name', 'Target Laba Kotor RKAP')?->value ?? 0;
             $ebitda = $items->firstWhere('kategori.name', 'EBITDA')?->value ?? 0;
+            $targetEbitdaRkap = $items->firstWhere('kategori.name', 'Target EBITDA RKAP')?->value ?? 0;
             $labaBersih = $items->firstWhere('kategori.name', 'Laba Bersih')?->value ?? 0;
+            $targetLabaBersihRkap = $items->firstWhere('kategori.name', 'Target Laba Bersih RKAP')?->value ?? 0;
 
-            $gpmPercent = $pendapatan > 0 ? ($labaKotor / $pendapatan) * 100 : 0;
-            $ebitdaPercent = $pendapatan > 0 ? ($ebitda / $pendapatan) * 100 : 0;
-            $npmPercent = $pendapatan > 0 ? ($labaBersih / $pendapatan) * 100 : 0;
+            $gpmPercent = $pendapatan > 0 ? min(100, ($labaKotor / $pendapatan) * 100) : 0;
+            $ebitdaPercent = $pendapatan > 0 ? min(100, ($ebitda / $pendapatan) * 100) : 0;
+            $npmPercent = $pendapatan > 0 ? min(100, ($labaBersih / $pendapatan) * 100) : 0;
+
+            $gpmRkapPercent = $targetLabaKotorRkap > 0 ? min(100, ($labaKotor / $targetLabaKotorRkap) * 100) : 0;
+            $ebitdaRkapPercent = $targetEbitdaRkap > 0 ? min(100, ($ebitda / $targetEbitdaRkap) * 100) : 0;
+            $npmRkapPercent = $targetLabaBersihRkap > 0 ? min(100, ($labaBersih / $targetLabaBersihRkap) * 100) : 0;
+
 
             $details = $items->map(fn($item) => [
                 'id' => $item->id,
@@ -264,10 +271,16 @@ class CashFlowMovementViewer extends Controller
                 'targetPendapatanRkap',
                 'labaKotor',
                 'gpmPercent',
+                'targetLabaKotorRkap',
+                'gpmRkapPercent',
                 'ebitda',
                 'ebitdaPercent',
+                'targetEbitdaRkap',
+                'ebitdaRkapPercent',
                 'labaBersih',
                 'npmPercent',
+                'targetLabaBersihRkap',
+                'npmRkapPercent',
                 'details'
             );
 
@@ -277,7 +290,6 @@ class CashFlowMovementViewer extends Controller
             }
         }
 
-        // Add missing months for lastYear
         for ($m = 1; $m <= 12; $m++) {
             if (!collect($result['lastYear']['months'])->pluck('month')->contains($m)) {
                 $result['lastYear']['months'][] = [
@@ -286,16 +298,21 @@ class CashFlowMovementViewer extends Controller
                     'targetPendapatanRkap' => 0,
                     'labaKotor' => 0,
                     'gpmPercent' => 0,
+                    'targetLabaKotorRkap' => 0,
+                    'gpmRkapPercent' => 0,
                     'ebitda' => 0,
                     'ebitdaPercent' => 0,
+                    'targetEbitdaRkap' => 0,
+                    'ebitdaRkapPercent' => 0,
                     'labaBersih' => 0,
                     'npmPercent' => 0,
+                    'targetLabaBersihRkap' => 0,
+                    'npmRkapPercent' => 0,
                     'details' => [],
                 ];
             }
         }
 
-        // Calculate total values for thisYear
         $totalLabaKotorThisYear = $totalEbitdaThisYear = $totalLabaBersihThisYear = 0;
         foreach ($result['thisYear']['months'] as $monthData) {
             $totalLabaKotorThisYear += $monthData['labaKotor'];
@@ -303,36 +320,41 @@ class CashFlowMovementViewer extends Controller
             $totalLabaBersihThisYear += $monthData['labaBersih'];
         }
 
-        // Get latest month and the month before it (last month)
         $latestMonthData = end($result['thisYear']['months']);
-        $lastMonthData = count($result['thisYear']['months']) > 1 ? prev($result['thisYear']['months']) : null;
+        $lastMonthData = count($result['thisYear']['months']) > 1
+                        ? prev($result['thisYear']['months'])
+                        : collect($result['lastYear']['months'])->firstWhere('month', 12) ?? null;
 
-        // Prepare latestMonth data
         $latestMonth = [
             'year' => $thisYear,
             'month' => $latestMonthData['month'],
-            'pendapatan' => $latestMonthData['pendapatan'],
-            'targetPendapatanRkap' => $latestMonthData['targetPendapatanRkap'],
-            'totalLabaKotor' => $totalLabaKotorThisYear,
+            'pendapatan' => $latestMonthData['pendapatan'] ?? 0,
+            'targetPendapatanRkap' => $latestMonthData['targetPendapatanRkap'] ?? 0,
+            'totalLabaKotor' => $totalLabaKotorThisYear ?? 0,
             'labaKotorLastMonth' => $lastMonthData['labaKotor'] ?? 0,
-            'labaKotor' => $latestMonthData['labaKotor'],
-            'gpmPercentLastMonth' => $lastMonthData['gpmPercent'],
-            'gpmPercent' => $latestMonthData['gpmPercent'],
-            'totalEbitda' => $totalEbitdaThisYear,
+            'labaKotor' => $latestMonthData['labaKotor'] ?? 0,
+            'gpmPercentLastMonth' => $lastMonthData['gpmPercent'] ?? 0,
+            'gpmPercent' => $latestMonthData['gpmPercent'] ?? 0,
+            'targetLabaKotorRkap' => $latestMonthData['targetLabaKotorRkap'] ?? 0,
+            'gpmRkapPercent' => $latestMonthData['gpmRkapPercent'] ?? 0,
+            'totalEbitda' => $totalEbitdaThisYear ?? 0,
             'ebitdaLastMonth' => $lastMonthData['ebitda'] ?? 0,
-            'ebitda' => $latestMonthData['ebitda'],
-            'ebitdaPercentLastMonth' => $lastMonthData['ebitdaPercent'],
-            'ebitdaPercent' => $latestMonthData['ebitdaPercent'],
-            'totallabaBersih' => $totalLabaBersihThisYear,
+            'ebitda' => $latestMonthData['ebitda'] ?? 0,
+            'ebitdaPercentLastMonth' => $lastMonthData['ebitdaPercent'] ?? 0,
+            'ebitdaPercent' => $latestMonthData['ebitdaPercent'] ?? 0,
+            'targetEbitdaRkap' => $latestMonthData['targetEbitdaRkap'] ?? 0,
+            'ebitdaRkapPercent' => $latestMonthData['ebitdaRkapPercent'] ?? 0,
+            'totallabaBersih' => $totalLabaBersihThisYear ?? 0,
             'labaBersihLastMonth' => $lastMonthData['labaBersih'] ?? 0,
-            'labaBersih' => $latestMonthData['labaBersih'],
-            'npmPercentLastMonth' => $lastMonthData['npmPercent'],
-            'npmPercent' => $latestMonthData['npmPercent'],
+            'labaBersih' => $latestMonthData['labaBersih'] ?? 0,
+            'npmPercentLastMonth' => $lastMonthData['npmPercent'] ?? 0,
+            'npmPercent' => $latestMonthData['npmPercent'] ?? 0,
+            'targetLabaBersihRkap' => $latestMonthData['targetLabaBersihRkap'] ?? 0,
+            'npmRkapPercent' => $latestMonthData['npmRkapPercent'] ?? 0,
         ];
 
         $result['latestMonth'] = $latestMonth;
 
-        // Sort months
         foreach (['thisYear', 'lastYear'] as $key) {
             usort($result[$key]['months'], fn($a, $b) => $a['month'] <=> $b['month']);
         }
