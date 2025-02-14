@@ -44,6 +44,10 @@ Route::get('target-income-cpo', [App\Http\Controllers\IncomingCpo\TargetIncoming
 Route::get('target-income-cpo/get/{id}', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'show']);
 Route::post('target-income-cpo/period', [App\Http\Controllers\IncomingCpo\TargetIncomingCpoController::class, 'indexPeriod']);
 
+Route::get('sdm', [App\Http\Controllers\Sdm\SdmController::class, 'index']);
+Route::get('sdm/get/{id}', [App\Http\Controllers\Sdm\SdmController::class, 'show']);
+Route::post('sdm/period', [App\Http\Controllers\Sdm\SdmController::class, 'indexPeriod']);
+
 Route::get('matauang', [App\Http\Controllers\Kurs\MataUangController::class, 'index']);
 Route::get('matauang/get/{id}', [App\Http\Controllers\Kurs\MataUangController::class, 'show']);
 
@@ -110,6 +114,9 @@ Route::get('uraian-target-penjualan/get/{id}', [App\Http\Controllers\Penjualan\T
 
 Route::get('uraian-target-packaging', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'index']);
 Route::get('uraian-target-packaging/get/{id}', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'show']);
+
+Route::get('uraian-sdm', [App\Http\Controllers\Sdm\UraianSdmController::class, 'index']);
+Route::get('uraian-sdm/get/{id}', [App\Http\Controllers\Sdm\UraianSdmController::class, 'show']);
 //beban
 Route::get('beban-prod', [App\Http\Controllers\CpoVs\BebanProdController::class, 'index']);
 Route::get('beban-prod/get/{id}', [App\Http\Controllers\CpoVs\BebanProdController::class, 'show']);
@@ -241,6 +248,9 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //Target Packaging Uraian
     Route::post('uraian-target-packaging/add', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'store']);
     Route::post('uraian-target-packaging/update/{id}', [App\Http\Controllers\Packaging\TargetPackagingUraianController::class, 'update']);
+    //Uraian sdm
+    Route::post('uraian-sdm/add', [App\Http\Controllers\Sdm\UraianSdmController::class, 'store']);
+    Route::post('uraian-sdm/update/{id}', [App\Http\Controllers\Sdm\UraianSdmController::class, 'update']);
     //Target Packaging
     Route::post('target-packaging/add', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'store']);
     Route::post('target-packaging/update/{id}', [App\Http\Controllers\Packaging\TargetPackagingController::class, 'update']);
@@ -310,6 +320,9 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //harga Spot
     Route::post('harga-spot/add', [App\Http\Controllers\Harga\HargaSpotController::class, 'store']);
     Route::post('harga-spot/update/{id}', [App\Http\Controllers\Harga\HargaSpotController::class, 'update']);
+    //harga Spot
+    Route::post('sdm/add', [App\Http\Controllers\Sdm\SdmController::class, 'store']);
+    Route::post('sdm/update/{id}', [App\Http\Controllers\Sdm\SdmController::class, 'update']);
 
 });
 
