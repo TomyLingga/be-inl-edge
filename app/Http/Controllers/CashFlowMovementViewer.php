@@ -162,6 +162,28 @@ class CashFlowMovementViewer extends Controller
                     'month' => $month,
                     'year' => $year,
                     'total' => $totalValue,
+                    'progress' => $filteredItems->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'kategori_id' => $item->kategori_id,
+                            'name' => $item->name,
+                            'tanggal' => $item->tanggal,
+                            'value' => $item->value,
+                            'pay_status_id' => $item->pay_status_id,
+                            'created_at' => $item->created_at,
+                            'updated_at' => $item->updated_at,
+                            'kategori' => [
+                                'id' => $item->kategori->id,
+                                'name' => $item->kategori->name,
+                            ],
+                            'pay_status' => [
+                                'id' => $item->payStatus->id,
+                                'name' => $item->payStatus->name,
+                                'state' => $item->payStatus->state,
+                                'remark' => $item->payStatus->remark,
+                            ]
+                        ];
+                    })->values(),
                     'data' => $kategoriItems->map(function ($item) {
                         return [
                             'id' => $item->id,
