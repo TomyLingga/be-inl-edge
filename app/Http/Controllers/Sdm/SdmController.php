@@ -194,7 +194,7 @@ class SdmController extends Controller
                 ->with('uraian')
                 ->orderBy('tanggal', 'desc') // Order by latest date first
                 ->get()
-                ->unique('uraian_id'); // Get only the latest entry for each uraian_id
+                ->unique('uraian_id')->values(); // Get only the latest entry for each uraian_id
 
             return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
 
