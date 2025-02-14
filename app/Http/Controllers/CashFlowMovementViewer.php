@@ -238,6 +238,10 @@ class CashFlowMovementViewer extends Controller
             [$year, $month] = explode('-', $monthYear);
             $month = (int)$month;
 
+            if ($year == $thisYear && $month > $akhir->month) {
+                continue;
+            }
+
             $pendapatan = $pendapatanByMonth[$monthYear] ?? 0;
             $targetPendapatanRkap = $items->firstWhere('kategori.name', 'Target Pendapatan RKAP')?->value ?? 0;
             $labaKotor = $items->firstWhere('kategori.name', 'Laba Kotor')?->value ?? 0;
