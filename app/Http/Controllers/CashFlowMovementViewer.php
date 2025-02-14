@@ -206,8 +206,10 @@ class CashFlowMovementViewer extends Controller
         $akhir = Carbon::parse($tanggalAkhir);
         $thisYear = $akhir->year;
         $lastYear = $akhir->copy()->subYear()->year;
+        $lastMonth = $akhir->copy()->subMonth()->month;
 
         $penjualan = LaporanPenjualan::whereYear('tanggal', '>=', $lastYear)
+            ->whereMonth('tanggal', '>=', $lastMonth)
             ->with('product', 'customer')
             ->get()
             ->map(function ($item) {
@@ -222,6 +224,7 @@ class CashFlowMovementViewer extends Controller
             });
 
         $data = Profitablity::whereYear('tanggal', '>=', $lastYear)
+            ->whereMonth('tanggal', '>=', $lastMonth)
             ->with('kategori')
             ->get()
             ->groupBy(function ($item) {
