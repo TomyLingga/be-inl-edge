@@ -343,9 +343,15 @@ class CashFlowMovementViewer extends Controller
         }
 
         $latestMonthData = end($result['thisYear']['months']);
-        $lastMonthData = count($result['thisYear']['months']) > 1
-                        ? prev($result['thisYear']['months'])
-                        : collect($result['lastYear']['months'])->firstWhere('month', 12) ?? null;
+        $lastMonthData = collect($result['thisYear']['months'])
+            ->where('month', '<', $latestMonthData['month']) // Get only months before the latest one
+            ->sortByDesc('month') // Sort in descending order
+            ->first(); // Get the most recent month before the latest
+
+        if (!$lastMonthData) {
+            // If there's no last month in this year, get December from last year
+            $lastMonthData = collect($result['lastYear']['months'])->firstWhere('month', 12);
+        }
 
         $latestMonth = [
             'year' => $thisYear,
