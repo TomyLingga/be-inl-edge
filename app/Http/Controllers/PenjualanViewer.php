@@ -107,9 +107,6 @@ class PenjualanViewer extends Controller
         ];
     }
 
-
-
-
     public function indexPeriodPenjualan($tanggalAwal, $tanggalAkhir)
     {
         $data = LaporanPenjualan::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
@@ -207,5 +204,56 @@ class PenjualanViewer extends Controller
             ];
         })->values();
     }
+
+    public function indexLocationPenjualan($tanggalAwal, $tanggalAkhir)
+    {
+        $data = LaporanPenjualan::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->with('product', 'customer')
+            ->get();
+
+        $data = $data->map(function ($item) {
+            $item->value = $item->qty * $item->harga_satuan;
+            return $item;
+        });
+
+        if ($data->isEmpty()) {
+            return null;
+        }
+
+        // Group bulk data by country
+        $bulkData = $data->filter(function ($item) {
+            return $item->product->jenis == 'bulk';
+        })->groupBy('customer.negara')->map(function ($items, $country) {
+            return [
+                'negara' => $country,
+                'qty' => $items->sum('qty'),
+                'value' => $items->sum('value'),
+            ];
+        })->values();
+
+        // Group ritel data by country and province
+        $ritelData = $data->filter(function ($item) {
+            return $item->product->jenis == 'ritel';
+        })->groupBy(['customer.negara', 'customer.provinsi'])->map(function ($items, $country) {
+            return [
+                'negara' => $country,
+                'provinsi' => $items->map(function ($provinsiItems, $provinsi) {
+                    return [
+                        'provinsi' => $provinsi,
+                        'qty' => $provinsiItems->sum('qty'),
+                        'value' => $provinsiItems->sum('value'),
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+        return [
+            'bulk' => $bulkData,
+            'ritel' => $ritelData,
+        ];
+    }
+
+
+
 
 }

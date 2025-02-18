@@ -196,4 +196,25 @@ class PenjualanController extends Controller
             ], 500);
         }
     }
+
+    public function indexLocation(Request $request)
+    {
+        $tanggalAwal = $request->tanggalAwal;
+        $tanggalAkhir = $request->tanggalAkhir;
+
+        try {
+
+            $data = $this->penjualanViewer->indexLocationPenjualan($tanggalAwal, $tanggalAkhir);
+
+            return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => $this->messageFail,
+                'err' => $e->getTrace()[0],
+                'errMsg' => $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
+    }
 }

@@ -88,6 +88,7 @@ Route::post('laporan-prod/period', [App\Http\Controllers\LaporanProduksi\Laporan
 Route::get('laporan-penjualan', [App\Http\Controllers\Penjualan\PenjualanController::class, 'index']);
 Route::get('laporan-penjualan/get/{id}', [App\Http\Controllers\Penjualan\PenjualanController::class, 'show']);
 Route::post('laporan-penjualan/period', [App\Http\Controllers\Penjualan\PenjualanController::class, 'indexPeriod']);
+Route::post('laporan-penjualan/location', [App\Http\Controllers\Penjualan\PenjualanController::class, 'indexLocation']);
 
 Route::get('laporan-packaging', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'index']);
 Route::get('laporan-packaging/get/{id}', [App\Http\Controllers\Packaging\LaporanPackagingController::class, 'show']);
