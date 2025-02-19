@@ -25,10 +25,6 @@ class LaporanMaterialViewer extends Controller
             ->with('itemMaterial.jenisLaporan')
             ->get();
 
-        if ($norma->isEmpty()) {
-            return null;
-        }
-
         $dataOlah = LaporanProduksi::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->where('pmg_id', $idPmg)
             ->with(['itemProduksi.jenisLaporan', 'pmg'])
@@ -57,7 +53,7 @@ class LaporanMaterialViewer extends Controller
                         'item_material_id' => $itemId,
                         'name' => $materialItems->first()->itemMaterial->name,
                         'kategori' => $materialItems->first()->itemMaterial->kategori,
-                        'totalQty' => $materialItems->sum('qty'), // Calculate totalQty
+                        'totalQty' => $materialItems->sum('qty'),
                         'details' => $materialItems->map(function ($item) {
                             return [
                                 'id' => $item->id,
@@ -145,12 +141,21 @@ class LaporanMaterialViewer extends Controller
                                 return $norma['materials'];
                             })->firstWhere('name', $materialName);
 
-                            $normaValue = $matchingNorma['totalQty'] ?? null;
+                            $normaValue = $matchingNorma['totalQty'] ?? 0;
 
-                            $usage = $totalOlahRefinery > 0 ? $totalQty / ($totalOlahRefinery / 1000) : 0;
+                            if($materialName == 'Bleaching Earth to Poram Spec'
+                                ||$materialName == 'Bleaching Earth to Branded Spec'
+                                ||$materialName == '% Oil Content'
+                                ||$materialName == 'Phosporic Acids'
+                            ){
+
+                                $usage = $totalOlahRefinery > 0 ? $totalQty / ($totalOlahRefinery / 1000) : 0;
+                            }else{
+                                $usage = $totalQty > 0 ? $totalQty : 0;
+                            }
 
                             // Determine color
-                            $color = null;
+                            $color = 'white';
                             if (!is_null($normaValue)) {
                                 $color = $normaValue < $usage ? 'red' : 'green';
                             }
