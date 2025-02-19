@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\LaporanMaterial;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\LaporanMaterialViewer;
 use App\Models\LaporanMaterial\NormaMaterial;
 use App\Models\Master\ItemMaterial;
 use App\Models\Master\Pmg;
@@ -15,6 +16,15 @@ use Illuminate\Support\Facades\Validator;
 
 class NormaMaterialController extends Controller
 {
+    protected $laporanMaterialViewer;
+
+    public function __construct(LaporanMaterialViewer $laporanMaterialViewer)
+    {
+        parent::__construct();
+
+        $this->laporanMaterialViewer = $laporanMaterialViewer;
+    }
+
     private $messageFail = 'Something went wrong';
     private $messageMissing = 'Data not found in record';
     private $messageAll = 'Success to Fetch All Datas';
@@ -181,6 +191,28 @@ class NormaMaterialController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollback();
+            return response()->json([
+                'message' => $this->messageFail,
+                'err' => $e->getTrace()[0],
+                'errMsg' => $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
+    }
+
+    public function indexPeriod(Request $request)
+    {
+        $tanggalAwal = $request->tanggalAwal;
+        $tanggalAkhir = $request->tanggalAkhir;
+        $idPmg = $request->idPmg;
+
+        try {
+
+            $data = $this->laporanMaterialViewer->indexPeriodNormaMaterial($tanggalAwal, $tanggalAkhir, $idPmg);
+
+            return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
+
+        } catch (QueryException $e) {
             return response()->json([
                 'message' => $this->messageFail,
                 'err' => $e->getTrace()[0],

@@ -99,6 +99,7 @@ Route::get('jenis-laporan-material/get/{id}', [App\Http\Controllers\LaporanMater
 
 Route::get('norma-material', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'index']);
 Route::get('norma-material/get/{id}', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'show']);
+Route::post('norma-material/period', [App\Http\Controllers\LaporanMaterial\NormaMaterialController::class, 'indexPeriod']);
 
 Route::get('laporan-material', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'index']);
 Route::get('laporan-material/get/{id}', [App\Http\Controllers\LaporanMaterial\LaporanMaterialController::class, 'show']);

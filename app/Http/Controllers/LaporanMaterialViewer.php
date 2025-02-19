@@ -184,4 +184,17 @@ class LaporanMaterialViewer extends Controller
         ];
     }
 
+    public function indexPeriodNormaMaterial($tanggalAwal, $tanggalAkhir, $idPmg)
+    {
+        $norma = NormaMaterial::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->where('pmg_id', $idPmg)
+            ->with('itemMaterial.jenisLaporan')
+            ->get();
+
+        if ($norma->isEmpty()) {
+            return null;
+        }
+
+        return $norma;
+    }
 }
