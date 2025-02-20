@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Penjualan\LaporanPenjualan;
 use App\Models\Penjualan\TargetPenjualan;
 use Illuminate\Http\Request;
+use League\ISO3166\ISO3166;
 
 class PenjualanViewer extends Controller
 {
@@ -220,26 +221,27 @@ class PenjualanViewer extends Controller
             return null;
         }
 
-        // Group bulk data by country
         $bulkData = $data->filter(function ($item) {
             return $item->product->jenis == 'bulk';
         })->groupBy('customer.negara')->map(function ($items, $country) {
             return [
                 'negara' => $country,
+                'code' => $this->getCountryCode($country),
                 'qty' => $items->sum('qty'),
                 'value' => $items->sum('value'),
             ];
         })->values();
 
-        // Group ritel data by country and province
         $ritelData = $data->filter(function ($item) {
             return $item->product->jenis == 'ritel';
         })->groupBy(['customer.negara', 'customer.provinsi'])->map(function ($items, $country) {
             return [
                 'negara' => $country,
+                'code' => $this->getCountryCode($country),
                 'provinsi' => $items->map(function ($provinsiItems, $provinsi) {
                     return [
                         'provinsi' => $provinsi,
+                        'code' => $this->getRegionCode($provinsi),
                         'qty' => $provinsiItems->sum('qty'),
                         'value' => $provinsiItems->sum('value'),
                     ];
@@ -253,7 +255,72 @@ class PenjualanViewer extends Controller
         ];
     }
 
+    private function getCountryCode($country)
+    {
+        $iso3166 = new ISO3166();
+        try {
+            $countryData = $iso3166->name($country);
+            return $countryData['alpha2'];
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
 
+    private function getRegionCode($province)
+    {
+        $regionCodes = [
+            'Indonesia' => [
+                'Aceh' => 'ID-AC',
+                'Bali' => 'ID-BA',
+                'Banten' => 'ID-BT',
+                'Bengkulu' => 'ID-BE',
+                'Gorontalo' => 'ID-GO',
+                'DKI Jakarta' => 'ID-JK',
+                // 'Jakarta' => 'ID-JK',
+                'Jambi' => 'ID-JA',
+                'Jawa Barat' => 'ID-JB',
+                'Jawa Tengah' => 'ID-JT',
+                'Jawa Timur' => 'ID-JI',
+                'Kalimantan Barat' => 'ID-KB',
+                'Kalimantan Selatan' => 'ID-KS',
+                'Kalimantan Tengah' => 'ID-KT',
+                'Kalimantan Timur' => 'ID-KI',
+                'Kalimantan Utara' => 'ID-KU',
+                'Kepulauan Bangka Belitung' => 'ID-BB',
+                'Kepulauan Riau' => 'ID-KR',
+                'Lampung' => 'ID-LA',
+                'Maluku' => 'ID-MA',
+                'Maluku Utara' => 'ID-MU',
+                'Nusa Tenggara Barat' => 'ID-NB',
+                'Nusa Tenggara Timur' => 'ID-NT',
+                'Papua' => 'ID-PA',
+                'Papua Barat' => 'ID-PB',
+                'Riau' => 'ID-RI',
+                'Sulawesi Barat' => 'ID-SR',
+                'Sulawesi Selatan' => 'ID-SN',
+                'Sulawesi Tengah' => 'ID-ST',
+                'Sulawesi Tenggara' => 'ID-SG',
+                'Sulawesi Utara' => 'ID-SA',
+                'Sumatera Barat' => 'ID-SB',
+                'Sumatera Selatan' => 'ID-SS',
+                'Sumatera Utara' => 'ID-SU',
+                // 'DI Yogyakarta' => 'ID-YO',
+                'Yogyakarta' => 'ID-YO',
+            ]
+        ];
 
+        // Ensure 'Indonesia' key exists before accessing
+        if (isset($regionCodes['Indonesia'][$province])) {
+            return $regionCodes['Indonesia'][$province];
+        }
+
+        foreach ($regionCodes['Indonesia'] as $key => $code) {
+            if (str_contains(strtolower($province), strtolower($key))) {
+                return $code;
+            }
+        }
+
+        return null;
+    }
 
 }
