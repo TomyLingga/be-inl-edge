@@ -171,7 +171,7 @@ class CpoKpbnViewer extends Controller
             });
 
             $targetForMonth = optional($target->get($key))->sum('qty'); // Get target for this month
-            $remaining = $targetForMonth - $monthQty;
+            $remaining = $targetForMonth - $monthQty ?? 0;
 
             $totalQty += $monthQty;
             $totalValue += $monthValue;
@@ -179,9 +179,9 @@ class CpoKpbnViewer extends Controller
             $result[] = [
                 'year' => (int) $year,
                 'month' => (int) $month,
-                'monthQty' => $monthQty,
-                'monthValue' => $monthValue,
-                'target' => $targetForMonth,
+                'monthQty' => $monthQty ?? 0,
+                'monthValue' => $monthValue ?? 0,
+                'target' => $targetForMonth ?? 0,
                 'remaining' => $remaining,
                 'detail' => $items->map(function ($item) {
                     return [
