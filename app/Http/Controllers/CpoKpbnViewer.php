@@ -22,7 +22,6 @@ class CpoKpbnViewer extends Controller
         ])->get($urlKpbn. "start_date=".$tanggalAwal."&end_date=".$tanggalAkhir)->json() ?? [];
     }
 
-    // $data = CpoKpbn::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])->get();
     public function indexPeriodCpoKpbn($tanggalAwal, $tanggalAkhir, $idMataUang)
     {
         $data = $this->getHargaKpbn($tanggalAwal, $tanggalAkhir);
@@ -32,26 +31,33 @@ class CpoKpbnViewer extends Controller
         })->values();
 
         if ($data->isEmpty()) {
-            return null;
+            $tanggalAkhir = date('Y-m-d', strtotime($tanggalAkhir . ' -1 day'));
+            $data = $this->getHargaKpbn($tanggalAwal, $tanggalAkhir);
+
+            $data = collect($data)->filter(fn($item) => $item['Prod_Code'] === 'CPO')->values();
+        }
+
+        if ($data->isEmpty()) {
+            return [
+                "data" => null,
+                "message" => "No Data Found, Even After Trying Previous Date"
+            ];
         }
 
         $kurs = Kurs::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
                     ->where('id_mata_uang', $idMataUang)
-                    ->orderBy('tanggal', 'asc') // Ensure kurs is sorted by tanggal
+                    ->orderBy('tanggal', 'asc')
                     ->get();
 
-        // Set default kurs if empty
         if ($kurs->isEmpty()) {
-            $kurs = collect([['value' => 0]]); // Default kurs value to 1
+            $kurs = collect([['value' => 0]]);
         }
-        // dd($data);
-        // dd($data->pluck('Penetapan_Harga'));
 
         $averageTotal = round($data->avg(fn($item) => (float) $item['Penetapan_Harga']), 2);
         $averageKurs = round($kurs->avg('value'), 2);
 
         $latestCpoData = $data->sortByDesc('Tanggal')->first();
-        $latestCpoValue = $latestCpoData['Penetapan_Harga'];
+        $latestCpoValue = round($latestCpoData['Penetapan_Harga'], 2);
         $latestCpoDate = $latestCpoData['Tanggal'];
 
         $latestKursData = $kurs->sortByDesc('tanggal')->first();
@@ -61,7 +67,7 @@ class CpoKpbnViewer extends Controller
             return Carbon::parse($item['Tanggal'])->format('Y-m');
         });
 
-        $totalAsingValues = []; // Collect all valueAsing for averageAsingTotal
+        $totalAsingValues = [];
 
         $result = [];
         foreach ($groupedData as $key => $items) {
@@ -74,16 +80,15 @@ class CpoKpbnViewer extends Controller
                 ];
             }
 
-            // Map details and calculate valueAsing for the month
             $details = $items->map(function ($item) use ($kurs, &$totalAsingValues) {
                 $matchedKurs = $kurs->where('tanggal', $item['Tanggal'])->first();
-                $kursValue = $matchedKurs ? $matchedKurs['value'] : 0; // Default to 0 if not found
+                $kursValue = $matchedKurs ? $matchedKurs['value'] : 0;
                 $valueAsing = ($kursValue != 0) ? round(($item['Penetapan_Harga'] / $kursValue) * 1000, 2) : 0;
                 $totalAsingValues[] = $valueAsing;
 
                 return [
                     'tanggal' => $item['Tanggal'],
-                    'value' => $item['Penetapan_Harga'],
+                    'value' => round($item['Penetapan_Harga'], 2),
                     'kurs' => $kursValue,
                     'valueAsing' => $valueAsing, // Value in Ton
                 ];
