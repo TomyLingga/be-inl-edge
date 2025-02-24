@@ -121,7 +121,8 @@ class CpoKpbnViewer extends Controller
     {
         $mataUang = MataUang::findOrFail($idMataUang);
 
-        $url = "https://www.bi.go.id/biwebservice/wskursbi.asmx/getSubKursAsing3?mts={$mataUang->name}&startdate={$tanggalAwal}&enddate={$tanggalAkhir}";
+        $url = env('URL_KURS').$mataUang->name."&startdate={$tanggalAwal}&enddate={$tanggalAkhir}";
+        // $url = "https://www.bi.go.id/biwebservice/wskursbi.asmx/getSubKursAsing3?mts={$mataUang->name}&startdate={$tanggalAwal}&enddate={$tanggalAkhir}";
         $xmlString = file_get_contents($url);
 
         $xml = simplexml_load_string($xmlString);
