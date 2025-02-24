@@ -24,11 +24,15 @@ class LevyReutersViewer extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        $kurs = Kurs::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('id_mata_uang', $idMataUang)
-            ->with('mataUang')
-            ->orderBy('tanggal', 'asc')
-            ->get();
+        $cpoKpbnViewer = new CpoKpbnViewer();
+
+        $kurs = $cpoKpbnViewer->indexPeriodKurs($tanggalAwal, $tanggalAkhir, $idMataUang);
+
+        if (empty($kurs)) {
+            $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
+        } else {
+            $kurs = collect($kurs)->map(fn($item) => (object) $item);
+        }
 
         $averageKurs = round($kurs->avg('value'), 2);
 
@@ -77,15 +81,15 @@ class LevyReutersViewer extends Controller
                             $kursValue = $kursCollection->firstWhere('tanggal', $marketDate);
 
                             if (!$kursValue) {
-                                $kursValue = ['value' => 1];
+                                $kursValue = (object) ['value' => 0]; // Ensure it's always an object
                             }
 
-                            if ($levyDuty && $kursValue['value'] !== 0) {
+                            if ($levyDuty && $kursValue->value !== 0) {
                                 // Calculate marketReutersExcldLevyDuty
                                 $marketReutersExcldLevyDuty = $marketReuters['nilai'] - $levyDuty['nilai'];
 
                                 // Calculate marketIdr
-                                $marketIdr = ($marketReutersExcldLevyDuty * $kursValue['value']) / 1000;
+                                $marketIdr = ($marketReutersExcldLevyDuty * $kursValue->value) / 1000;
 
                                 // Store the calculated values
                                 $productData['marketReutersExcldLevyDuty'][$index] = [

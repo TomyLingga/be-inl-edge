@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Harga\Harga;
 use App\Models\Harga\HargaSpot;
 use App\Models\Kurs\Kurs;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class HargaViewer extends Controller
@@ -15,26 +16,27 @@ class HargaViewer extends Controller
             ->with('product')
             ->get();
 
-        $kurs = Kurs::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('id_mata_uang', $idMataUang)
-            ->with('mataUang')
-            ->orderBy('tanggal', 'asc')
-            ->get();
-
-        if ($kurs->isEmpty()) {
-            $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
-        }
-
         if ($data->isEmpty()) {
             return null;
         }
 
+        $cpoKpbnViewer = new CpoKpbnViewer();
+
+        $kurs = $cpoKpbnViewer->indexPeriodKurs($tanggalAwal, $tanggalAkhir, $idMataUang);
+
+        if (empty($kurs)) {
+            $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
+        } else {
+            $kurs = collect($kurs)->map(fn($item) => (object) $item);
+        }
+
         // Map kurs data by tanggal
-        $kursMap = $kurs->keyBy('tanggal');
+        $kursMap = $kurs->keyBy(fn($item) => Carbon::parse($item->tanggal)->format('Y-m-d'));
 
         // Calculate prices for each item
         $data->each(function ($item) use ($kursMap) {
-            $kursValue = $kursMap->get($item->tanggal)->value ?? 0;
+            $itemDate = Carbon::parse($item->tanggal)->format('Y-m-d');
+            $kursValue = $kursMap->get($itemDate)->value ?? 0;
             $item->kurs = $kursValue > 0 ? $kursValue : 0;
 
             if ($item->product->jenis === 'bulk') {
@@ -80,26 +82,27 @@ class HargaViewer extends Controller
             ->with('product')
             ->get();
 
-        $kurs = Kurs::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('id_mata_uang', $idMataUang)
-            ->with('mataUang')
-            ->orderBy('tanggal', 'asc')
-            ->get();
-
-        if ($kurs->isEmpty()) {
-            $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
-        }
-
         if ($data->isEmpty()) {
             return null;
         }
 
+        $cpoKpbnViewer = new CpoKpbnViewer();
+
+        $kurs = $cpoKpbnViewer->indexPeriodKurs($tanggalAwal, $tanggalAkhir, $idMataUang);
+
+        if (empty($kurs)) {
+            $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
+        } else {
+            $kurs = collect($kurs)->map(fn($item) => (object) $item);
+        }
+
         // Map kurs data by tanggal
-        $kursMap = $kurs->keyBy('tanggal');
+        $kursMap = $kurs->keyBy(fn($item) => Carbon::parse($item->tanggal)->format('Y-m-d'));
 
         // Calculate prices for each item
         $data->each(function ($item) use ($kursMap) {
-            $kursValue = $kursMap->get($item->tanggal)->value ?? 0;
+            $itemDate = Carbon::parse($item->tanggal)->format('Y-m-d');
+            $kursValue = $kursMap->get($itemDate)->value ?? 0;
             $item->kurs = $kursValue > 0 ? $kursValue : 0;
 
             if ($item->product->jenis === 'bulk') {
@@ -123,12 +126,12 @@ class HargaViewer extends Controller
         // Format period data into the required structure
         $formatGroupedData = function ($collection) {
             return $collection
-                ->groupBy(fn($item) => $item->product->name) // Group by product name
+                ->groupBy(fn($item) => $item->product->name)
                 ->map(fn($items, $name) => [
                     'name' => $name,
                     'details' => $items->values(),
                 ])
-                ->values(); // Convert to indexed array
+                ->values();
         };
 
         return [
@@ -138,5 +141,6 @@ class HargaViewer extends Controller
             'periodHargaRitel' => ['products' => $formatGroupedData($ritelData)],
         ];
     }
+
 
 }

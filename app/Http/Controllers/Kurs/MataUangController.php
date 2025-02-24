@@ -22,7 +22,7 @@ class MataUangController extends Controller
     public function index()
     {
         try {
-            $data = MataUang::all();
+            $data = MataUang::orderBy('name')->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)
