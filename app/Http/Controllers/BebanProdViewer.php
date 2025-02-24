@@ -18,10 +18,6 @@ class BebanProdViewer extends Controller
             ->with('uraian', 'pmg')
             ->get();
 
-        // if ($data->isEmpty()) {
-        //     return null;
-        // }
-
         $dataOlah = LaporanProduksi::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
             ->where('pmg_id', $idPmg)
             ->with(['itemProduksi.jenisLaporan', 'pmg'])
