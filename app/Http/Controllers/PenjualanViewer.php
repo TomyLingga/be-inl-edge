@@ -80,7 +80,7 @@ class PenjualanViewer extends Controller
 
                 // Map the targets and add percentage to each target
                 $product['target'] = $product['target']->map(function ($target) use ($totalQtyProductPenjualan) {
-                    $percentageQtyToTarget = $totalQtyProductPenjualan === 0 ? 0 : ($totalQtyProductPenjualan / $target['totalQtyTarget']) * 100;
+                    $percentageQtyToTarget = $totalQtyProductPenjualan === 0 ? 100 : ($totalQtyProductPenjualan / $target['totalQtyTarget']) * 100;
                     $target['percentageQtyToTarget'] = $percentageQtyToTarget;
                     return $target;
                 });
