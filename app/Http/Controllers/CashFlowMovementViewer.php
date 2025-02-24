@@ -272,13 +272,13 @@ class CashFlowMovementViewer extends Controller
             $labaBersih = $items->firstWhere('kategori.name', 'Laba Bersih')?->value ?? 0;
             $targetLabaBersihRkap = $items->firstWhere('kategori.name', 'Target Laba Bersih RKAP')?->value ?? 0;
 
-            $gpmPercent = $pendapatan > 0 ? min(100, ($labaKotor / $pendapatan) * 100) : 0;
-            $ebitdaPercent = $pendapatan > 0 ? min(100, ($ebitda / $pendapatan) * 100) : 0;
-            $npmPercent = $pendapatan > 0 ? min(100, ($labaBersih / $pendapatan) * 100) : 0;
+            $gpmPercent = $pendapatan != 0 ? min(100, ($labaKotor / $pendapatan) * 100) : 0;
+            $ebitdaPercent = $pendapatan != 0 ? min(100, ($ebitda / $pendapatan) * 100) : 0;
+            $npmPercent = $pendapatan != 0 ? min(100, ($labaBersih / $pendapatan) * 100) : 0;
 
-            $gpmRkapPercent = $targetLabaKotorRkap > 0 ? min(100, ($labaKotor / $targetLabaKotorRkap) * 100) : 0;
-            $ebitdaRkapPercent = $targetEbitdaRkap > 0 ? min(100, ($ebitda / $targetEbitdaRkap) * 100) : 0;
-            $npmRkapPercent = $targetLabaBersihRkap > 0 ? min(100, ($labaBersih / $targetLabaBersihRkap) * 100) : 0;
+            $gpmRkapPercent = $targetLabaKotorRkap != 0 ? min(100, ($labaKotor / $targetLabaKotorRkap) * 100) : 0;
+            $ebitdaRkapPercent = $targetEbitdaRkap != 0 ? min(100, ($ebitda / $targetEbitdaRkap) * 100) : 0;
+            $npmRkapPercent = $targetLabaBersihRkap != 0 ? min(100, ($labaBersih / $targetLabaBersihRkap) * 100) : 0;
 
 
             $details = $items->map(fn($item) => [
