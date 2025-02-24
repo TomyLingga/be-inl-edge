@@ -4,6 +4,7 @@ namespace App\Models\Master;
 
 use App\Models\LevyReuter\LevyDuty;
 use App\Models\LevyReuter\MarketReuters;
+use App\Models\Penjualan\TargetPenjualan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,6 +24,11 @@ class Product extends Model
     public function levyDuties()
     {
         return $this->hasMany(LevyDuty::class, 'id_bulky');
+    }
+
+    public function targetPenjualan()
+    {
+        return $this->hasMany(TargetPenjualan::class, 'product_id');
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Master\Product;
 use App\Models\Penjualan\LaporanPenjualan;
 use App\Models\Penjualan\TargetPenjualan;
 use Illuminate\Http\Request;
@@ -12,29 +13,21 @@ class PenjualanViewer extends Controller
 
     public function indexPeriodTargetPenjualan($tanggalAwal, $tanggalAkhir)
     {
-        // Retrieve target penjualan data
-        $data = TargetPenjualan::whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->with('uraian', 'product')
-            ->get();
+        // Get all products with target data (left join)
+        $products = Product::with(['targetPenjualan' => function ($query) use ($tanggalAwal, $tanggalAkhir) {
+            $query->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])->with('uraian');
+        }])->get();
 
-        if ($data->isEmpty()) {
-            return null;
-        }
-
-        // Retrieve actual penjualan data
+        // Get sales data (penjualan)
         $dataPenjualan = $this->indexPeriodPenjualan($tanggalAwal, $tanggalAkhir);
-
-        // Ensure $dataPenjualan contains the expected structure
         $dataPenjualan = $dataPenjualan ?? ['bulk' => ['products' => [], 'totalQtyKategori' => 0], 'ritel' => ['products' => [], 'totalQtyKategori' => 0]];
 
-        $groupedData = $data->groupBy('product_id')->map(function ($items) {
-            $product = $items->first()->product;
+        // Map products and merge target data
+        $groupedData = $products->map(function ($product) {
+            $targets = $product->targetPenjualan;
 
-            return [
-                'idProduct' => $product->id,
-                'name' => $product->name,
-                'jenis' => $product->jenis,
-                'target' => $items->groupBy('uraian_id')->map(function ($uraianItems) {
+            $targetData = $targets->isNotEmpty()
+                ? $targets->groupBy('uraian_id')->map(function ($uraianItems) {
                     $uraian = $uraianItems->first()->uraian;
 
                     return [
@@ -50,42 +43,49 @@ class PenjualanViewer extends Controller
                             ];
                         }),
                     ];
-                })->values(),
-            ];
-        })->values();
+                })->values()
+                : collect([[ // Ensure empty targets default to 0
+                    'nama' => 'Default',
+                    'totalQtyTarget' => 0,
+                    'detail' => [],
+                ]]);
 
-        // Filter data by kategori: bulk and ritel
+            return [
+                'idProduct' => $product->id,
+                'name' => $product->name,
+                'jenis' => $product->jenis,
+                'target' => $targetData,
+            ];
+        });
+
+        // Filter into bulk and ritel categories
         $groupedDataBulk = $groupedData->filter(fn($item) => $item['jenis'] === 'bulk')->values();
         $groupedDataRitel = $groupedData->filter(fn($item) => $item['jenis'] === 'ritel')->values();
 
-        // Calculate totalQtyTargetKategori for bulk and ritel
+        // Calculate total target quantities for bulk and ritel
         $totalQtyBulk = $groupedDataBulk->sum(fn($item) => $item['target']->sum('totalQtyTarget'));
         $totalQtyRitel = $groupedDataRitel->sum(fn($item) => $item['target']->sum('totalQtyTarget'));
 
         $totalQtyBulkPenjualan = $dataPenjualan['bulk']['totalQtyKategori'] ?? 0;
         $totalQtyRitelPenjualan = $dataPenjualan['ritel']['totalQtyKategori'] ?? 0;
 
-        $percentageQtyToTargetBulk = $totalQtyBulk === 0 ? 0 : ($totalQtyBulkPenjualan / $totalQtyBulk) * 100;
-        $percentageQtyToTargetRitel = $totalQtyRitel === 0 ? 0 : ($totalQtyRitelPenjualan / $totalQtyRitel) * 100;
+        $percentageQtyToTargetBulk = $totalQtyBulk === 0 ? 100 : ($totalQtyBulkPenjualan / $totalQtyBulk) * 100;
+        $percentageQtyToTargetRitel = $totalQtyRitel === 0 ? 100 : ($totalQtyRitelPenjualan / $totalQtyRitel) * 100;
 
-        // Handle products mapping
+        // Merge sales data into product targets
         $mapProducts = function ($groupedData, $kategori) use ($dataPenjualan) {
             return $groupedData->map(function ($product) use ($dataPenjualan, $kategori) {
-                // Check if products exist in dataPenjualan before accessing
-                $productPenjualan = isset($dataPenjualan[$kategori]['products'])
-                    ? collect($dataPenjualan[$kategori]['products'])->firstWhere('idProduct', $product['idProduct'])
-                    : null;
-
+                $productPenjualan = collect($dataPenjualan[$kategori]['products'])->firstWhere('idProduct', $product['idProduct']);
                 $totalQtyProductPenjualan = $productPenjualan['totalQty'] ?? 0;
 
-                // Map the targets and add percentage to each target
                 $product['target'] = $product['target']->map(function ($target) use ($totalQtyProductPenjualan) {
-                    $percentageQtyToTarget = $totalQtyProductPenjualan === 0 ? 100 : ($totalQtyProductPenjualan / $target['totalQtyTarget']) * 100;
+                    $percentageQtyToTarget = $target['totalQtyTarget'] == 0
+                        ? 100
+                        : ($totalQtyProductPenjualan / $target['totalQtyTarget']) * 100;
                     $target['percentageQtyToTarget'] = $percentageQtyToTarget;
                     return $target;
                 });
 
-                // Add totalQty for the product
                 $product['totalQty'] = $totalQtyProductPenjualan;
 
                 return $product;
@@ -107,6 +107,7 @@ class PenjualanViewer extends Controller
             ],
         ];
     }
+
 
     public function indexPeriodPenjualan($tanggalAwal, $tanggalAkhir)
     {
