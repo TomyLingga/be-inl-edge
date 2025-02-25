@@ -24,7 +24,7 @@ class BebanProdViewer extends Controller
             ->get();
 
         if ($dataOlah->isEmpty()) {
-            $totalOlahRefinery = 1;
+            $totalOlahRefinery = 0;
         }else{
             $totalOlahRefinery = $dataOlah
                 ->filter(function ($item) {
@@ -39,11 +39,11 @@ class BebanProdViewer extends Controller
         $totalCost = $data->sum('value');
 
         // Calculate totalHargaSatuan
-        $totalHargaSatuan = $totalCost / $totalOlahRefinery;
+        $totalHargaSatuan = $totalOlahRefinery == 0 ? $totalCost : $totalCost / $totalOlahRefinery;
 
         $groupedData = $data->groupBy('uraian_id')->map(function ($items) use ($totalOlahRefinery) {
             $totalValue = $items->sum('value');
-            $hargaSatuan = $totalValue / $totalOlahRefinery;
+            $hargaSatuan = $totalOlahRefinery == 0 ? $totalValue : $totalValue / $totalOlahRefinery;
 
             return [
                 'uraian' => $items->first()->uraian->nama,
