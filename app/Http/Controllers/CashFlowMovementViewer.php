@@ -87,29 +87,49 @@ class CashFlowMovementViewer extends Controller
 
         // Calculate latestCashBalance
         $lastMonthIndex = $lastMonthThisYear - 1; // Array index for the last month
+
+        // Find the latest month with data (non-empty details)
+        $latestMonthWithData = null;
+
+        foreach (array_reverse($thisYear['data']) as $monthData) {
+            if (!empty($monthData['detail'])) {
+                $latestMonthWithData = $monthData;
+                break;
+            }
+        }
+
+        $latestMonth = [
+            'year' => $endOfThisYear->year,
+            'month' => $latestMonthWithData['month'] ?? $lastMonthThisYear,
+            'data' => $latestMonthWithData ?? ['month' => $lastMonthThisYear, 'ending_cash_balanced' => 0, 'detail' => []],
+        ];
+
+        // Calculate latest cash balance
         $latestCashBalance = [
-            'value' => $thisYear['data'][$lastMonthIndex]['ending_cash_balanced'] ?? 0,
+            'value' => $latestMonth['data']['ending_cash_balanced'] ?? 0,
             'status' => 'none',
             'difference' => 0,
         ];
 
+        $lastMonthIndex = $latestMonthWithData ? $latestMonthWithData['month'] - 1 : $lastMonthThisYear - 1;
+
         if ($lastMonthIndex > 0) {
-            // Compare with the previous month in the same year
             $previousMonthValue = $thisYear['data'][$lastMonthIndex - 1]['ending_cash_balanced'] ?? 0;
         } else {
-            // If it's January, compare with December of the previous year
-            $previousMonthValue = $lastYear['data'][11]['ending_cash_balanced'] ?? 0; // December index is 11
+            $previousMonthValue = $lastYear['data'][11]['ending_cash_balanced'] ?? 0; // December of last year
         }
 
-        $currentMonthValue = $thisYear['data'][$lastMonthIndex]['ending_cash_balanced'] ?? 0;
+        $currentMonthValue = $latestCashBalance['value'];
         $latestCashBalance['difference'] = $currentMonthValue - $previousMonthValue;
         $latestCashBalance['status'] = $currentMonthValue > $previousMonthValue ? 'up' : ($currentMonthValue < $previousMonthValue ? 'down' : 'none');
 
         return [
             'latestCashBalance' => $latestCashBalance,
+            'latestMonth' => $latestMonth,
             'thisYear' => $thisYear,
             'lastYear' => $lastYear,
         ];
+
     }
 
     public function indexPeriodCashFlowSchedule($tanggalAkhir)
