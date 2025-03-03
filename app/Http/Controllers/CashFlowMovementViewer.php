@@ -94,11 +94,16 @@ class CashFlowMovementViewer extends Controller
         ];
 
         if ($lastMonthIndex > 0) {
+            // Compare with the previous month in the same year
             $previousMonthValue = $thisYear['data'][$lastMonthIndex - 1]['ending_cash_balanced'] ?? 0;
-            $currentMonthValue = $thisYear['data'][$lastMonthIndex]['ending_cash_balanced'];
-            $latestCashBalance['difference'] = $currentMonthValue - $previousMonthValue;
-            $latestCashBalance['status'] = $currentMonthValue > $previousMonthValue ? 'up' : ($currentMonthValue < $previousMonthValue ? 'down' : 'none');
+        } else {
+            // If it's January, compare with December of the previous year
+            $previousMonthValue = $lastYear['data'][11]['ending_cash_balanced'] ?? 0; // December index is 11
         }
+
+        $currentMonthValue = $thisYear['data'][$lastMonthIndex]['ending_cash_balanced'] ?? 0;
+        $latestCashBalance['difference'] = $currentMonthValue - $previousMonthValue;
+        $latestCashBalance['status'] = $currentMonthValue > $previousMonthValue ? 'up' : ($currentMonthValue < $previousMonthValue ? 'down' : 'none');
 
         return [
             'latestCashBalance' => $latestCashBalance,
