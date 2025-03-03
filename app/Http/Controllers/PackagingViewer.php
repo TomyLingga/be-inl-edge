@@ -52,7 +52,7 @@ class PackagingViewer extends Controller
                         $targetValue = $uraianGroup->sum('value'); // Sum values for the uraian group
 
                         // Calculate percentage
-                        $percentage = ($targetValue != 0) ? ($finalValueProdukHasil / $targetValue) * 100 : 0;
+                        $percentage = ($targetValue != 0) ? ($finalValueProdukHasil / $targetValue) * 100 : 100;
 
                         return [
                             'nama' => $uraianName,
