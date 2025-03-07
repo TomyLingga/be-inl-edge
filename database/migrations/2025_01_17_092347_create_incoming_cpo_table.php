@@ -32,6 +32,7 @@ class CreateIncomingCpoTable extends Migration
             $table->decimal('qty', 30, 2);
             $table->decimal('harga', 30, 2);
             $table->foreignId('source_id')->constrained('source_incoming_cpo');
+            $table->string('remark');
             $table->timestamps();
         });
     }

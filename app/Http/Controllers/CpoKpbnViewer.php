@@ -268,6 +268,7 @@ class CpoKpbnViewer extends Controller
                         'harga' => $item->harga,
                         'value' => $item->qty * $item->harga,
                         'source_id' => $item->source_id,
+                        'remark' => $item->remark,
                         'created_at' => $item->created_at,
                         'updated_at' => $item->updated_at,
                         'source' => [

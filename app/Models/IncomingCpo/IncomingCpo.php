@@ -17,6 +17,7 @@ class IncomingCpo extends Model
         'qty',
         'harga',
         'source_id',
+        'remark'
     ];
 
     public function source()

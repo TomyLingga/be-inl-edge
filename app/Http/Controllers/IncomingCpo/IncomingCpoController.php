@@ -82,8 +82,8 @@ class IncomingCpoController extends Controller
                 'source_id' => 'required|exists:' . SourceIncomingCpo::class . ',id',
                 'tanggal' => 'required|date',
                 'qty' => 'required|numeric',
-                'harga' => 'required|numeric'
-
+                'harga' => 'required|numeric',
+                'remark' => 'required'
             ]);
 
             if ($validator->fails()) {
@@ -140,7 +140,8 @@ class IncomingCpoController extends Controller
                 'source_id' => 'required|exists:' . SourceIncomingCpo::class . ',id',
                 'tanggal' => 'required|date',
                 'qty' => 'required|numeric',
-                'harga' => 'required|numeric'
+                'harga' => 'required|numeric',
+                'remark' => 'required'
             ]);
 
             if ($validator->fails()) {
@@ -169,6 +170,7 @@ class IncomingCpoController extends Controller
                 'tanggal' => $request->filled('tanggal') ? $request->tanggal : $data->tanggal,
                 'qty' => $request->filled('qty') ? $request->qty : $data->qty,
                 'harga' => $request->filled('harga') ? $request->harga : $data->harga,
+                'remark' => $request->filled('remark') ? $request->remark : $data->remark,
             ];
 
             $oldData = $data->toArray();
