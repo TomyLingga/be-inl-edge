@@ -83,7 +83,7 @@ class IncomingCpoController extends Controller
                 'tanggal' => 'required|date',
                 'qty' => 'required|numeric',
                 'harga' => 'required|numeric',
-                'remark' => 'required'
+                // 'remark' => 'required'
             ]);
 
             if ($validator->fails()) {
@@ -141,7 +141,7 @@ class IncomingCpoController extends Controller
                 'tanggal' => 'required|date',
                 'qty' => 'required|numeric',
                 'harga' => 'required|numeric',
-                'remark' => 'required'
+                // 'remark' => 'required'
             ]);
 
             if ($validator->fails()) {
