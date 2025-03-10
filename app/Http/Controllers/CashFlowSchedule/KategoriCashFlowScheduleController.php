@@ -22,7 +22,8 @@ class KategoriCashFlowScheduleController extends Controller
     public function index()
     {
         try {
-            $data = KategoriCashFlowSchedule::all();
+            $data = KategoriCashFlowSchedule::orderBy('name', 'asc')
+                    ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

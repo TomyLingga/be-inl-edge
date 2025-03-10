@@ -22,7 +22,8 @@ class SupplierController extends Controller
     public function index()
     {
         try {
-            $data = Supplier::all();
+            $data = Supplier::orderBy('name', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

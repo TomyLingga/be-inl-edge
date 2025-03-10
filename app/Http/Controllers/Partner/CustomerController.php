@@ -22,7 +22,8 @@ class CustomerController extends Controller
     public function index()
     {
         try {
-            $data = Customer::all();
+            $data = Customer::orderBy('name', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

@@ -22,7 +22,9 @@ class JenisLaporanMaterialController extends Controller
     public function index()
     {
         try {
-            $data = JenisLaporanMaterial::with('items')->get();
+            $data = JenisLaporanMaterial::with('items')
+                    ->orderBy('name', 'asc')
+                    ->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);

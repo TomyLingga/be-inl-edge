@@ -22,7 +22,8 @@ class LokasiController extends Controller
     public function index()
     {
         try {
-            $data = Lokasi::all();
+            $data = Lokasi::orderBy('name', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

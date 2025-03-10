@@ -23,7 +23,8 @@ class ProductStorageController extends Controller
     public function index()
     {
         try {
-            $data = ProductStorage::with('lokasi')->get();
+            $data = ProductStorage::with('lokasi')->orderBy('name', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

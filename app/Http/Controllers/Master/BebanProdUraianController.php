@@ -22,7 +22,8 @@ class BebanProdUraianController extends Controller
     public function index()
     {
         try {
-            $data = BebanProdUraian::all();
+            $data = BebanProdUraian::orderBy('nama', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

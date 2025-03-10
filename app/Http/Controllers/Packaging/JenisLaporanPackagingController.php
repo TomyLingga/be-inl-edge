@@ -23,7 +23,8 @@ class JenisLaporanPackagingController extends Controller
     public function index()
     {
         try {
-            $data = JenisLaporanPackaging::with(['itemPackaging.productHasil'])->get();
+            $data = JenisLaporanPackaging::with(['itemPackaging.productHasil'])->orderBy('name', 'asc')
+            ->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);

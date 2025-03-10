@@ -22,7 +22,8 @@ class PmgController extends Controller
     public function index()
     {
         try {
-            $data = Pmg::all();
+            $data = Pmg::orderBy('nama', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

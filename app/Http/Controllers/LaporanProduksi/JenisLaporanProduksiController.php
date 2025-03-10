@@ -22,7 +22,8 @@ class JenisLaporanProduksiController extends Controller
     public function index()
     {
         try {
-            $data = JenisLaporanProduksi::with('itemProduksi')->get();
+            $data = JenisLaporanProduksi::with('itemProduksi')->orderBy('name', 'asc')
+            ->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);

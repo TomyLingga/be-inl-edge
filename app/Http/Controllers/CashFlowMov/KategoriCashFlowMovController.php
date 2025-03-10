@@ -22,7 +22,8 @@ class KategoriCashFlowMovController extends Controller
     public function index()
     {
         try {
-            $data = KategoriCashFlowMovement::all();
+            $data = KategoriCashFlowMovement::orderBy('name', 'asc')
+            ->get();
 
             if ($data->isEmpty()) {
                 return response()->json(['message' => $this->messageMissing], 401);

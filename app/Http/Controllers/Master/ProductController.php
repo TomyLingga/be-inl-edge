@@ -22,7 +22,8 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $data = Product::all();
+            $data = Product::orderBy('name', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)

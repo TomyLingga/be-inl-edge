@@ -22,7 +22,8 @@ class PackagingController extends Controller
     public function index()
     {
         try {
-            $data = Packaging::all();
+            $data = Packaging::orderBy('nama', 'asc')
+            ->get();
 
             return $data->isEmpty()
                 ? response()->json(['message' => $this->messageMissing], 401)
