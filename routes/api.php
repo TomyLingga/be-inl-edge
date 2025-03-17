@@ -183,6 +183,22 @@ Route::get('harga-spot', [App\Http\Controllers\Harga\HargaSpotController::class,
 Route::get('harga-spot/get/{id}', [App\Http\Controllers\Harga\HargaSpotController::class, 'show']);
 Route::post('harga-spot/period', [App\Http\Controllers\Harga\HargaSpotController::class, 'indexPeriod']);
 
+//SicalRsp
+//pengali
+Route::get('sical-rsp-pengali', [App\Http\Controllers\SicalRsp\PengaliController::class, 'index']);
+Route::get('sical-rsp-pengali/get/{id}', [App\Http\Controllers\SicalRsp\PengaliController::class, 'show']);
+//master-costs
+Route::get('sical-rsp-master-costs', [App\Http\Controllers\SicalRsp\MasterCostController::class, 'index']);
+Route::get('sical-rsp-master-costs/get/{id}', [App\Http\Controllers\SicalRsp\MasterCostController::class, 'show']);
+//utilisasi
+Route::get('sical-rsp-utilisasi', [App\Http\Controllers\SicalRsp\UtilisasiController::class, 'index']);
+Route::get('sical-rsp-utilisasi/get/{id}', [App\Http\Controllers\SicalRsp\UtilisasiController::class, 'show']);
+//dmo
+Route::get('sical-rsp-dmo', [App\Http\Controllers\SicalRsp\DmoController::class, 'index']);
+Route::get('sical-rsp-dmo/get/{id}', [App\Http\Controllers\SicalRsp\DmoController::class, 'show']);
+Route::get('sical-rsp-dmo/latest', [App\Http\Controllers\SicalRsp\DmoController::class, 'latest']);
+
+
 Route::group(['middleware' => 'levelone.checker'], function () {
     //PMG
     Route::post('pmg/add', [App\Http\Controllers\Master\PmgController::class, 'store']);
@@ -325,6 +341,20 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //harga Spot
     Route::post('sdm/add', [App\Http\Controllers\Sdm\SdmController::class, 'store']);
     Route::post('sdm/update/{id}', [App\Http\Controllers\Sdm\SdmController::class, 'update']);
+
+    //SicalRsp
+    //pengali
+    Route::post('sical-rsp-pengali/add', [App\Http\Controllers\SicalRsp\PengaliController::class, 'store']);
+    Route::post('sical-rsp-pengali/update/{id}', [App\Http\Controllers\SicalRsp\PengaliController::class, 'update']);
+    //master-costs
+    Route::post('sical-rsp-master-costs/add', [App\Http\Controllers\SicalRsp\MasterCostController::class, 'store']);
+    Route::post('sical-rsp-master-costs/update/{id}', [App\Http\Controllers\SicalRsp\MasterCostController::class, 'update']);
+    //dmo
+    Route::post('sical-rsp-dmo/add', [App\Http\Controllers\SicalRsp\DmoController::class, 'store']);
+    Route::post('sical-rsp-dmo/update/{id}', [App\Http\Controllers\SicalRsp\DmoController::class, 'update']);
+    //utilisasi
+    Route::post('sical-rsp-utilisasi/add', [App\Http\Controllers\SicalRsp\UtilisasiController::class, 'store']);
+    Route::post('sical-rsp-utilisasi/update/{id}', [App\Http\Controllers\SicalRsp\UtilisasiController::class, 'update']);
 
 });
 
