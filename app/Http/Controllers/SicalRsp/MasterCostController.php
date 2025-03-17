@@ -22,7 +22,7 @@ class MasterCostController extends Controller
     public function index()
     {
         try {
-            $data = MasterCost::orderBy('name', 'asc')
+            $data = MasterCost::orderBy('id', 'asc')
             ->get();
 
             return $data->isEmpty()

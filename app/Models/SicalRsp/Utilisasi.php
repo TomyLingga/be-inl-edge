@@ -19,7 +19,7 @@ class Utilisasi extends Model
 
     public function cost()
     {
-        return $this->hasMany(Cost::class, 'id_simulation');
+        return $this->hasMany(Cost::class, 'id_utilisasi');
     }
 
     public function logs()

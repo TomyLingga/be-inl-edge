@@ -21,7 +21,6 @@ class CreateSimulationTable extends Migration
             $table->decimal('kurs', 30, 2);
             $table->decimal('expected_margin', 30, 2);
             $table->foreignId('id_dmo')->constrained('dmo');
-            $table->foreignId('id_offer')->constrained('offer');
             $table->timestamps();
         });
     }

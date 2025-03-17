@@ -26,6 +26,34 @@ class CpoKpbnViewer extends Controller
         ])->get($urlKpbn. "start_date=".$tanggalAwal."&end_date=".$tanggalAkhir)->json() ?? [];
     }
 
+    public function indexLatestCpoKpbn()
+    {
+        $enddate = now()->format('Y-m-d');
+        $startdate = now()->subDays(7)->format('Y-m-d');
+
+        $data = collect();
+
+        while ($data->isEmpty() && strtotime($enddate) >= strtotime($startdate)) {
+            $fetchedData = $this->getHargaKpbn($startdate, $enddate);
+            $data = collect($fetchedData)->filter(fn($item) => $item['Prod_Code'] === 'CPO')->values();
+
+            if ($data->isEmpty()) {
+                $enddate = date('Y-m-d', strtotime($enddate . ' -1 day'));
+            }
+        }
+
+        if ($data->isEmpty()) {
+            return [
+                "data" => null,
+                "message" => "No Data Found, Even After Trying Previous Dates"
+            ];
+        }
+
+        $latestData = $data->sortByDesc('Tanggal')->first();
+
+        return $latestData;
+    }
+
     public function indexPeriodCpoKpbn($tanggalAwal, $tanggalAkhir, $idMataUang)
     {
         $data = collect();
@@ -122,7 +150,6 @@ class CpoKpbnViewer extends Controller
         $mataUang = MataUang::findOrFail($idMataUang);
 
         $url = env('URL_KURS').$mataUang->name."&startdate={$tanggalAwal}&enddate={$tanggalAkhir}";
-        // $url = "https://www.bi.go.id/biwebservice/wskursbi.asmx/getSubKursAsing3?mts={$mataUang->name}&startdate={$tanggalAwal}&enddate={$tanggalAkhir}";
         $xmlString = file_get_contents($url);
 
         $xml = simplexml_load_string($xmlString);
@@ -152,64 +179,43 @@ class CpoKpbnViewer extends Controller
 
         return $data;
     }
-    // public function indexPeriodKurs($tanggalAwal, $tanggalAkhir, $idMataUang)
-    // {
-    //     $mataUang = MataUang::findOrFail($idMataUang);
 
-    //     $url = "https://www.bi.go.id/biwebservice/wskursbi.asmx/getSubKursAsing3?mts={$mataUang->name}&startdate={$tanggalAwal}&enddate={$tanggalAkhir}";
-    //     $xmlString = file_get_contents($url);
-    //     $xml = simplexml_load_string($xmlString);
+    public function indexLatestKurs($idMataUang)
+    {
+        $mataUang = MataUang::findOrFail($idMataUang);
+        $enddate = now()->format('Y-m-d');
+        $startdate = now()->subDays(7)->format('Y-m-d');
 
-    //     $data = [];
-    //     $prevValue = null;
+        $url = env('URL_KURS').$mataUang->name."&startdate={$startdate}&enddate={$enddate}";
+        $xmlString = file_get_contents($url);
 
-    //     // Collect data from XML
-    //     foreach ($xml->children('diffgr', true)->diffgram->children()->NewDataSet->children() as $table) {
-    //         $beli = (float) $table->beli_subkursasing;
-    //         $jual = (float) $table->jual_subkursasing;
-    //         $tgl = date('Y-m-d', strtotime((string) $table->tgl_subkursasing));
-    //         $value = ($beli + $jual) / 2;
+        $xml = simplexml_load_string($xmlString);
 
-    //         $data[$tgl] = [
-    //             'id_mata_uang' => $mataUang->id,
-    //             'tanggal' => $tgl,
-    //             'value' => $value,
-    //             'mata_uang' => [
-    //                 'id' => $mataUang->id,
-    //                 'name' => $mataUang->name,
-    //                 'symbol' => $mataUang->symbol,
-    //                 'remark' => $mataUang->remark,
-    //             ],
-    //         ];
+        $data = [];
+        foreach ($xml->children('diffgr', true)->diffgram->children()->NewDataSet->children() as $table) {
+            $beli = (float) $table->beli_subkursasing;
+            $jual = (float) $table->jual_subkursasing;
+            $tgl = date('Y-m-d', strtotime((string) $table->tgl_subkursasing));
 
-    //         $prevValue = $value;
-    //     }
+            $data[] = [
+                'id_mata_uang' => $mataUang->id,
+                'tanggal' => $tgl,
+                'value' => ($beli + $jual) / 2,
+                'mata_uang' => [
+                    'id' => $mataUang->id,
+                    'name' => $mataUang->name,
+                    'symbol' => $mataUang->symbol,
+                    'remark' => $mataUang->remark,
+                ],
+            ];
+        }
 
-    //     $filledData = [];
-    //     $period = new DatePeriod(new DateTime($tanggalAwal), new DateInterval('P1D'), (new DateTime($tanggalAkhir))->modify('+1 day'));
+        usort($data, function ($a, $b) {
+            return strtotime($b['tanggal']) - strtotime($a['tanggal']);
+        });
 
-    //     foreach ($period as $date) {
-    //         $tgl = $date->format('Y-m-d');
-    //         if (isset($data[$tgl])) {
-    //             $filledData[] = $data[$tgl];
-    //             $prevValue = $data[$tgl]['value'];
-    //         } else {
-    //             $filledData[] = [
-    //                 'id_mata_uang' => $mataUang->id,
-    //                 'tanggal' => $tgl,
-    //                 'value' => $prevValue ?? 0,
-    //                 'mata_uang' => [
-    //                     'id' => $mataUang->id,
-    //                     'name' => $mataUang->name,
-    //                     'symbol' => $mataUang->symbol,
-    //                     'remark' => $mataUang->remark,
-    //                 ],
-    //             ];
-    //         }
-    //     }
-
-    //     return $filledData;
-    // }
+        return $data[0];
+    }
 
     public function indexPeriodIncomingCpo($tanggalAwal, $tanggalAkhir)
     {

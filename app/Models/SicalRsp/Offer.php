@@ -15,12 +15,13 @@ class Offer extends Model
     protected $fillable = [
         'buyer_name',
         'price',
-        'volume'
+        'volume',
+        'simulation_id'
     ];
 
     public function simulation()
     {
-        return $this->hasOne(Simulation::class, 'id_offer');
+        return $this->belongsTo(Simulation::class, 'simulation_id');
     }
 
     public function logs()

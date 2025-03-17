@@ -195,4 +195,22 @@ class CpoKpbnController extends Controller
             ], 500);
         }
     }
+
+    public function indexLatest()
+    {
+        try {
+
+            $data = $this->cpoKpbnViewer->indexLatestCpoKpbn();
+
+            return response()->json(['data' => $data, 'message' => $this->messageAll], 200);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => $this->messageFail,
+                'err' => $e->getTrace()[0],
+                'errMsg' => $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
+    }
 }

@@ -18,6 +18,7 @@ class CreateOfferTable extends Migration
             $table->string('buyer_name')->nullable();
             $table->decimal('price', 30, 2);
             $table->decimal('volume', 30, 2);
+            $table->foreignId('simulation_id')->constrained('simulation');
             $table->timestamps();
         });
     }

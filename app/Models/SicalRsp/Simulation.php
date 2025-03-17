@@ -19,8 +19,7 @@ class Simulation extends Model
         'date',
         'kurs',
         'expected_margin',
-        'id_dmo',
-        'id_offer'
+        'id_dmo'
     ];
 
     public function product()
@@ -35,7 +34,7 @@ class Simulation extends Model
 
     public function offer()
     {
-        return $this->belongsTo(Offer::class, 'id_offer');
+        return $this->hasOne(Offer::class, 'simulation_id');
     }
 
     public function catatan()

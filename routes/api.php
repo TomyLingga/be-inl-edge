@@ -143,10 +143,12 @@ Route::post('cashflowmov/period', [App\Http\Controllers\CashFlowMov\CashFlowMovC
 Route::get('cpo-kpbn', [App\Http\Controllers\CPO\CpoKpbnController::class, 'index']);
 Route::get('cpo-kpbn/get/{id}', [App\Http\Controllers\CPO\CpoKpbnController::class, 'show']);
 Route::post('cpo-kpbn/period', [App\Http\Controllers\CPO\CpoKpbnController::class, 'indexPeriod']);
+Route::get('cpo-kpbn/latest', [App\Http\Controllers\CPO\CpoKpbnController::class, 'indexLatest']);
 //kurs
 Route::get('kurs', [App\Http\Controllers\Kurs\KursController::class, 'index']);
 Route::get('kurs/get/{id}', [App\Http\Controllers\Kurs\KursController::class, 'show']);
 Route::post('kurs/period', [App\Http\Controllers\Kurs\KursController::class, 'indexPeriod']);
+Route::post('kurs/latest', [App\Http\Controllers\Kurs\KursController::class, 'indexLatest']);
 //outstanding cpo
 Route::get('outstanding-cpo', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'index']);
 Route::get('outstanding-cpo/get/{id}', [App\Http\Controllers\Outstanding\OutstandingCpoController::class, 'show']);
@@ -197,6 +199,9 @@ Route::get('sical-rsp-utilisasi/get/{id}', [App\Http\Controllers\SicalRsp\Utilis
 Route::get('sical-rsp-dmo', [App\Http\Controllers\SicalRsp\DmoController::class, 'index']);
 Route::get('sical-rsp-dmo/get/{id}', [App\Http\Controllers\SicalRsp\DmoController::class, 'show']);
 Route::get('sical-rsp-dmo/latest', [App\Http\Controllers\SicalRsp\DmoController::class, 'latest']);
+//simulasi
+Route::get('sical-rsp-simulation', [App\Http\Controllers\SicalRsp\SimulationController::class, 'index']);
+Route::get('sical-rsp-simulation/get/{id}', [App\Http\Controllers\SicalRsp\SimulationController::class, 'show']);
 
 
 Route::group(['middleware' => 'levelone.checker'], function () {
@@ -355,6 +360,9 @@ Route::group(['middleware' => 'levelone.checker'], function () {
     //utilisasi
     Route::post('sical-rsp-utilisasi/add', [App\Http\Controllers\SicalRsp\UtilisasiController::class, 'store']);
     Route::post('sical-rsp-utilisasi/update/{id}', [App\Http\Controllers\SicalRsp\UtilisasiController::class, 'update']);
+    //simulation
+    Route::post('sical-rsp-simulation/add', [App\Http\Controllers\SicalRsp\SimulationController::class, 'store']);
+    Route::post('sical-rsp-simulation/update/{id}', [App\Http\Controllers\SicalRsp\SimulationController::class, 'update']);
 
 });
 
