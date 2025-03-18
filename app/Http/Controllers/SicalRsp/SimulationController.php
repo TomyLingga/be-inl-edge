@@ -424,15 +424,14 @@ class SimulationController extends Controller
                     'name' => $masterCost->name,
                     'value' => $costValue,
                     'usd' => ($costValue * 1000) / $kurs,
-                    'proportion' => $proportionPercent !== null ? $proportionPercent . "%" : null
+                    'proportion' => $proportionPercent !== null ? $proportionPercent : null
                 ];
             }
 
             foreach ($utilities as $utilityName => &$utility) {
                 $utility['marginValue'] = ($expected_margin / 100) * $utility['marginContribute'];
                 $utility['marginPercent'] = ($utility['total'] > 0)
-                    ? ($utility['marginValue'] / $utility['marginContribute']) * 100 . "%"
-                    : null;
+                    ? ($utility['marginValue'] / $utility['marginContribute']) * 100 : null;
 
                 $fobIdr = $utility['proportionContribute'] + $utility['marginValue'];
                 $fobUsd = ($fobIdr / $kurs) * 1000;
@@ -457,8 +456,7 @@ class SimulationController extends Controller
                 $biayaDmoKerugianIdr = $utility['dmoContribute'] - $dmo->value;
                 $biayaDmoKerugianUsd = ($biayaDmoKerugianIdr / $kurs) * 1000;
                 $biayaDmoKerugianProportion = ($dmo->value > 0)
-                    ? round(($biayaDmoKerugianIdr / $dmo->value) * 100, 2) . "%"
-                    : null;
+                    ? round(($biayaDmoKerugianIdr / $dmo->value) * 100, 2) : null;
 
                 $utility['biayaDmoKerugian'] = [
                     'idr' => $biayaDmoKerugianIdr,
