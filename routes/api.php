@@ -202,6 +202,7 @@ Route::get('sical-rsp-dmo/latest', [App\Http\Controllers\SicalRsp\DmoController:
 //simulasi
 Route::get('sical-rsp-simulation', [App\Http\Controllers\SicalRsp\SimulationController::class, 'index']);
 Route::get('sical-rsp-simulation/get/{id}', [App\Http\Controllers\SicalRsp\SimulationController::class, 'show']);
+Route::post('sical-rsp-simulation/calculate', [App\Http\Controllers\SicalRsp\SimulationController::class, 'calculate']);
 
 
 Route::group(['middleware' => 'levelone.checker'], function () {

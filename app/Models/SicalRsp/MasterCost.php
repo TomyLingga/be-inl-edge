@@ -14,7 +14,9 @@ class MasterCost extends Model
 
     protected $fillable = [
         'name',
-        'contribute_to_margin'
+        'contribute_to_margin',
+        'contribute_to_proportion',
+        'contribute_to_dmo'
     ];
 
     public function cost()

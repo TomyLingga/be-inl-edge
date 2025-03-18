@@ -17,6 +17,8 @@ class CreateCostsTable extends Migration
             $table->id();
             $table->string('name');
             $table->boolean('contribute_to_margin');
+            $table->boolean('contribute_to_proportion');
+            $table->boolean('contribute_to_dmo');
             $table->timestamps();
         });
 

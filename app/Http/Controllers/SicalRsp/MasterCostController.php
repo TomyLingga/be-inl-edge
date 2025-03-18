@@ -70,7 +70,9 @@ class MasterCostController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|unique:master_costs,name',
-                'contribute_to_margin' => 'required|boolean'
+                'contribute_to_margin' => 'required|boolean',
+                'contribute_to_proportion' => 'required|boolean',
+                'contribute_to_dmo' => 'required|boolean'
             ]);
 
             if ($validator->fails()) {
@@ -113,7 +115,9 @@ class MasterCostController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|unique:master_costs,name,' . $id,
-                'contribute_to_margin' => 'required|boolean'
+                'contribute_to_margin' => 'required|boolean',
+                'contribute_to_proportion' => 'required|boolean',
+                'contribute_to_dmo' => 'required|boolean'
             ]);
 
             if ($validator->fails()) {

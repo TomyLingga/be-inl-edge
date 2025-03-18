@@ -8,8 +8,11 @@ use App\Models\SicalRsp\Catatan;
 use App\Models\SicalRsp\Cost;
 use App\Models\SicalRsp\DetailCatatan;
 use App\Models\SicalRsp\Dmo;
+use App\Models\SicalRsp\MasterCost;
 use App\Models\SicalRsp\Offer;
+use App\Models\SicalRsp\Pengali;
 use App\Models\SicalRsp\Simulation;
+use App\Models\SicalRsp\Utilisasi;
 use App\Services\LoggerService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -18,15 +21,6 @@ use Illuminate\Support\Facades\Validator;
 
 class SimulationController extends Controller
 {
-    // protected $laporanProdViewer;
-
-    // public function __construct(LaporanProduksiViewer $laporanProdViewer)
-    // {
-    //     parent::__construct();
-
-    //     $this->laporanProdViewer = $laporanProdViewer;
-    // }
-
     private $messageFail = 'Something went wrong';
     private $messageMissing = 'Data not found in record';
     private $messageAll = 'Success to Fetch All Datas';
@@ -327,7 +321,7 @@ class SimulationController extends Controller
                     'catatan' => $catatanRecords,
                     'detailCatatan' => $detailCatatanRecords,
                 ],
-                'message' => 'Simulation updated successfully',
+                'message' => $this->messageUpdate,
                 'success' => true,
             ], 200);
         } catch (\Exception $e) {
@@ -340,5 +334,204 @@ class SimulationController extends Controller
             ], 500);
         }
     }
+
+    public function calculate(Request $request)
+    {
+        try {
+            $rules = [
+                'name' => 'required',
+                'kurs' => 'required|numeric',
+                'expected_margin' => 'required|numeric',
+                'id_dmo' => 'required|exists:' . Dmo::class . ',id',
+                'offer.price' => 'required|numeric',
+                'offer.volume' => 'required|numeric',
+
+                'costs' => 'required|array|min:1',
+                'costs.*.id_master_cost' => 'required|exists:master_costs,id',
+                'costs.*.value' => 'required|numeric',
+                'costs.*.id_utilisasi' => 'required|exists:utilisasi,id',
+
+                'catatan' => 'required|array|min:1',
+                'catatan.*.judul' => 'required|string',
+                'catatan.*.detailCatatan' => 'required|array|min:1',
+                'catatan.*.detailCatatan.*.teks' => 'required|string',
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors(),
+                    'success' => false,
+                ], 400);
+            }
+
+            $kurs = $request->kurs;
+            $expected_margin = $request->expected_margin;
+            $dmo = Dmo::findOrFail($request->id_dmo);
+            $pengaliList = Pengali::orderBy('name', 'asc')->get();
+            $buyerPrice = $request->offer['price'];
+            $buyerVolume = $request->offer['volume'];
+            $utilities = [];
+
+            foreach ($request->costs as $cost) {
+                $masterCost = MasterCost::find($cost['id_master_cost']);
+                $utilization = Utilisasi::find($cost['id_utilisasi']);
+
+                if (!$masterCost || !$utilization) {
+                    continue;
+                }
+
+                $utilityName = $utilization->name;
+                $costValue = $cost['value'];
+
+                if (!isset($utilities[$utilityName])) {
+                    $utilities[$utilityName] = [
+                        'name' => $utilityName,
+                        'total' => 0,
+                        'marginContribute' => 0,
+                        'proportionContribute' => 0,
+                        'dmoContribute' => 0,
+                        'cost' => []
+                    ];
+                }
+
+                $utilities[$utilityName]['total'] += $costValue;
+                if ($masterCost->contribute_to_margin) {
+                    $utilities[$utilityName]['marginContribute'] += $costValue;
+                }
+
+                if ($masterCost->contribute_to_proportion) {
+                    $utilities[$utilityName]['proportionContribute'] += $costValue;
+                }
+
+                if ($masterCost->contribute_to_dmo) {
+                    $utilities[$utilityName]['dmoContribute'] += $costValue;
+                }
+            }
+
+            foreach ($request->costs as $cost) {
+                $masterCost = MasterCost::find($cost['id_master_cost']);
+                $utilization = Utilisasi::find($cost['id_utilisasi']);
+
+                if (!$masterCost || !$utilization) {
+                    continue;
+                }
+
+                $utilityName = $utilization->name;
+                $costValue = $cost['value'];
+                $proportionContribute = $utilities[$utilityName]['proportionContribute'];
+
+                $proportionPercent = ($masterCost->contribute_to_proportion && $proportionContribute > 0)
+                    ? ($costValue / $proportionContribute) * 100
+                    : null;
+
+                $utilities[$utilityName]['cost'][] = [
+                    'name' => $masterCost->name,
+                    'value' => $costValue,
+                    'usd' => ($costValue * 1000) / $kurs,
+                    'proportion' => $proportionPercent !== null ? $proportionPercent . "%" : null
+                ];
+            }
+
+            foreach ($utilities as $utilityName => &$utility) {
+                $utility['marginValue'] = ($expected_margin / 100) * $utility['marginContribute'];
+                $utility['marginPercent'] = ($utility['total'] > 0)
+                    ? ($utility['marginValue'] / $utility['marginContribute']) * 100 . "%"
+                    : null;
+
+                $fobIdr = $utility['proportionContribute'] + $utility['marginValue'];
+                $fobUsd = ($fobIdr / $kurs) * 1000;
+                $cpoPlusFob = $fobUsd - ($utility['cost'][0]['usd'] ?? 0);
+                $cpoPlusLoco = $cpoPlusFob - ($utility['cost'][2]['usd'] ?? 0);
+
+                $utility['tanpaDmo'] = [
+                    [
+                        'name' => 'FOB',
+                        'idr' => $fobIdr,
+                        'usd' => $fobUsd,
+                        'cpoPlus' => $cpoPlusFob
+                    ],
+                    [
+                        'name' => 'LOCO',
+                        'idr' => null,
+                        'usd' => null,
+                        'cpoPlus' => $cpoPlusLoco
+                    ]
+                ];
+
+                $biayaDmoKerugianIdr = $utility['dmoContribute'] - $dmo->value;
+                $biayaDmoKerugianUsd = ($biayaDmoKerugianIdr / $kurs) * 1000;
+                $biayaDmoKerugianProportion = ($dmo->value > 0)
+                    ? round(($biayaDmoKerugianIdr / $dmo->value) * 100, 2) . "%"
+                    : null;
+
+                $utility['biayaDmoKerugian'] = [
+                    'idr' => $biayaDmoKerugianIdr,
+                    'usd' => $biayaDmoKerugianUsd,
+                    'proportion' => $biayaDmoKerugianProportion
+                ];
+
+                $utility['biayaDmoDenganPengali'] = [];
+                $utility['denganDmo'] = [];
+                foreach ($pengaliList as $pengali) {
+                    if ($pengali->value != 0) {
+                        $biayaIdr = $biayaDmoKerugianIdr / $pengali->value;
+                        $biayaUsd = ($biayaIdr / $kurs) * 1000;
+
+                        $utility['biayaDmoDenganPengali'][] = [
+                            'name' => $pengali->name,
+                            'idr' => $biayaIdr,
+                            'usd' => $biayaUsd,
+                        ];
+
+                        $utility['denganDmo'][] = [
+                            'name' => $pengali->name,
+                            'idr' => $fobIdr + $biayaIdr,
+                            'usd' => $fobUsd + $biayaUsd,
+                            'idrCpoPlus' => $fobIdr + $biayaIdr - ($utility['cost'][0]['value'] ?? 0),
+                            'usdCpoPlus' => $fobUsd + $biayaUsd - ($utility['cost'][0]['usd'] ?? 0),
+                        ];
+                    }
+                }
+                usort($utility['biayaDmoDenganPengali'], fn($a, $b) => $b['idr'] <=> $a['idr']);
+                usort($utility['denganDmo'], fn($a, $b) => $b['idr'] <=> $a['idr']);
+
+
+                $utility['rekomHargaJualTanpaDmo'] = $utility['tanpaDmo'][0]['usd'] ?? null;
+
+                $utility['rekomHargaJualDenganDmo'] = array_map(fn($dmo) => [
+                    'name' => $dmo['name'],
+                    'value' => $dmo['usd']
+                ], $utility['denganDmo']);
+
+                $utility['potensiLabaRugiTanpaDmo'] = $buyerVolume * ($buyerPrice - $utility['rekomHargaJualTanpaDmo']);
+
+                $utility['potensiLabaRugiDenganDmo'] = array_map(fn($dmo) => [
+                    'name' => $dmo['name'],
+                    'value' => $buyerVolume * ($buyerPrice - $dmo['value'])
+                ], $utility['rekomHargaJualDenganDmo']);
+            }
+
+            return response()->json([
+                'data' => ['utilisasi' => array_values($utilities)],
+                'message' => $this->messageCreate,
+                'success' => true,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $this->messageFail,
+                'err' => $e->getTrace()[0],
+                'errMsg' => $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
+    }
+
+
+
+
+
 
 }
