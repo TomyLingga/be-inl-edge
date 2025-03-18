@@ -339,7 +339,6 @@ class SimulationController extends Controller
     {
         try {
             $rules = [
-                'name' => 'required',
                 'kurs' => 'required|numeric',
                 'expected_margin' => 'required|numeric',
                 'id_dmo' => 'required|exists:' . Dmo::class . ',id',
@@ -350,11 +349,6 @@ class SimulationController extends Controller
                 'costs.*.id_master_cost' => 'required|exists:master_costs,id',
                 'costs.*.value' => 'required|numeric',
                 'costs.*.id_utilisasi' => 'required|exists:utilisasi,id',
-
-                'catatan' => 'required|array|min:1',
-                'catatan.*.judul' => 'required|string',
-                'catatan.*.detailCatatan' => 'required|array|min:1',
-                'catatan.*.detailCatatan.*.teks' => 'required|string',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -528,10 +522,4 @@ class SimulationController extends Controller
             ], 500);
         }
     }
-
-
-
-
-
-
 }
