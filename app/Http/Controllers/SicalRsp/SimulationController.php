@@ -418,20 +418,20 @@ class SimulationController extends Controller
 
                 $proportionPercent = ($masterCost->contribute_to_proportion && $proportionContribute > 0)
                     ? ($costValue / $proportionContribute) * 100
-                    : null;
+                    : 0;
 
                 $utilities[$utilityName]['cost'][] = [
                     'name' => $masterCost->name,
                     'value' => $costValue,
                     'usd' => ($costValue * 1000) / $kurs,
-                    'proportion' => $proportionPercent !== null ? $proportionPercent : null
+                    'proportion' => $proportionPercent !== 0 ? $proportionPercent : 0
                 ];
             }
 
             foreach ($utilities as $utilityName => &$utility) {
                 $utility['marginValue'] = ($expected_margin / 100) * $utility['marginContribute'];
                 $utility['marginPercent'] = ($utility['total'] > 0)
-                    ? ($utility['marginValue'] / $utility['marginContribute']) * 100 : null;
+                    ? ($utility['marginValue'] / $utility['marginContribute']) * 100 : 0;
 
                 $fobIdr = $utility['proportionContribute'] + $utility['marginValue'];
                 $fobUsd = ($fobIdr / $kurs) * 1000;
@@ -456,7 +456,7 @@ class SimulationController extends Controller
                 $biayaDmoKerugianIdr = $utility['dmoContribute'] - $dmo->value;
                 $biayaDmoKerugianUsd = ($biayaDmoKerugianIdr / $kurs) * 1000;
                 $biayaDmoKerugianProportion = ($dmo->value > 0)
-                    ? round(($biayaDmoKerugianIdr / $dmo->value) * 100, 2) : null;
+                    ? round(($biayaDmoKerugianIdr / $dmo->value) * 100, 2) : 0;
 
                 $utility['biayaDmoKerugian'] = [
                     'idr' => $biayaDmoKerugianIdr,
@@ -490,7 +490,7 @@ class SimulationController extends Controller
                 usort($utility['denganDmo'], fn($a, $b) => $b['idr'] <=> $a['idr']);
 
 
-                $utility['rekomHargaJualTanpaDmo'] = $utility['tanpaDmo'][0]['usd'] ?? null;
+                $utility['rekomHargaJualTanpaDmo'] = $utility['tanpaDmo'][0]['usd'] ?? 0;
 
                 $utility['rekomHargaJualDenganDmo'] = array_map(fn($dmo) => [
                     'name' => $dmo['name'],
