@@ -91,14 +91,20 @@ class LevyReutersViewer extends Controller
                                 // Calculate marketIdr
                                 $marketIdr = ($marketReutersExcldLevyDuty * $kursValue->value) / 1000;
 
-                                // Store the calculated values
-                                $productData['marketReutersExcldLevyDuty'][$index] = [
+                                if (!isset($productData['marketReutersExcldLevyDuty'])) {
+                                    $productData['marketReutersExcldLevyDuty'] = [];
+                                }
+                                if (!isset($productData['marketIdr'])) {
+                                    $productData['marketIdr'] = [];
+                                }
+
+                                $productData['marketReutersExcldLevyDuty'][] = [
                                     'product' => $marketProduct,
                                     'tanggal' => $marketDate,
                                     'nilai' => $marketReutersExcldLevyDuty
                                 ];
 
-                                $productData['marketIdr'][$index] = [
+                                $productData['marketIdr'][] = [
                                     'product' => $marketProduct,
                                     'tanggal' => $marketDate,
                                     'nilai' => $marketIdr
