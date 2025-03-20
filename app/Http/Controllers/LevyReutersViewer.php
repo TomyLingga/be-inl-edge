@@ -86,7 +86,7 @@ class LevyReutersViewer extends Controller
 
                             if ($levyDuty && $kursValue->value !== 0) {
                                 // Calculate marketReutersExcldLevyDuty
-                                $marketReutersExcldLevyDuty = $marketReuters['nilai'] - $levyDuty['nilai'];
+                                $marketReutersExcldLevyDuty = ($marketReuters['nilai'] != 0) ? ($marketReuters['nilai'] - $levyDuty['nilai']) : 0;
 
                                 // Calculate marketIdr
                                 $marketIdr = ($marketReutersExcldLevyDuty * $kursValue->value) / 1000;
