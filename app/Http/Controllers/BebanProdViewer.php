@@ -164,6 +164,7 @@ class BebanProdViewer extends Controller
 
         foreach ($data as $item) {
             $percentage = $item->total_value == 0 ? 0 : ($totalOlahRefinery / $item->total_value) * 100;
+            $percentage = min($percentage, 100); // Ensure max is 100%
             $resultData[] = [
                 'nama'     => $item->uraian->nama,
                 'value'    => number_format($item->total_value, 2, '.', ''),
