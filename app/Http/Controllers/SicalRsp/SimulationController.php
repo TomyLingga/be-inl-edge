@@ -266,7 +266,7 @@ class SimulationController extends Controller
             ]);
 
             // Delete existing Costs
-            $simulation->costs()->delete();
+            $simulation->cost()->delete();
 
             // Insert new Costs
             $costs = [];
