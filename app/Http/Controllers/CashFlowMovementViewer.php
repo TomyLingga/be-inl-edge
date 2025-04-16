@@ -68,14 +68,15 @@ class CashFlowMovementViewer extends Controller
         }
 
         $calculateEndingCashBalanced = function (&$yearData) {
-            $previousEnding = 0;
+            // $previousEnding = 0;
             foreach ($yearData['data'] as &$monthData) {
                 $monthTotal = array_reduce($monthData['detail'], function ($carry, $item) {
                     return $carry + ($item['nilai'] === 'positive' ? $item['value'] : -$item['value']);
                 }, 0);
 
-                $monthData['ending_cash_balanced'] = $previousEnding + $monthTotal;
-                $previousEnding = $monthData['ending_cash_balanced'];
+                $monthData['ending_cash_balanced'] = $monthTotal;
+                // $monthData['ending_cash_balanced'] = $previousEnding + $monthTotal;
+                // $previousEnding = $monthData['ending_cash_balanced'];
             }
         };
 
