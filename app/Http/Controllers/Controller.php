@@ -62,25 +62,31 @@ class Controller extends BaseController
             $newData = json_decode($log->new_data, true);
 
             $changes = [];
+
             if ($log->action === 'update') {
                 $changes = collect($newData)->map(function ($value, $key) use ($oldData) {
+                    if ($key === 'updated_at') return null; // Skip updated_at
+                    if (!array_key_exists($key, $oldData)) return null;
                     if ($oldData[$key] !== $value) {
                         return [
-                            'old' => $oldData[$key],
-                            'new' => $value,
+                            'part' => $key,
+                            'old'  => $oldData[$key],
+                            'new'  => $value,
                         ];
                     }
-                })->filter();
+                    return null;
+                })->filter()->values()->all();
             }
 
             return [
-                'action' => $log->action,
-                'user_name' => $user['name'],
-                'changes' => $changes,
+                'action'     => $log->action,
+                'user_name'  => $user['name'],
+                'changes'    => $changes,
                 'created_at' => $log->created_at,
             ];
         })->sortByDesc('created_at')->values()->all();
     }
+
 
 
     public function formatLogsForMultiple($logs)

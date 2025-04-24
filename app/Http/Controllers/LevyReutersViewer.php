@@ -112,8 +112,8 @@ class LevyReutersViewer extends Controller
                             }
                         }
 
-                        $excldLevyDutyValues = collect($productData['marketReutersExcldLevyDuty'])->pluck('nilai');
-                        $idrValues = collect($productData['marketIdr'])->pluck('nilai');
+                        $excldLevyDutyValues = collect($productData['marketReutersExcldLevyDuty'] ?? [])->pluck('nilai');
+                        $idrValues = collect($productData['marketIdr'] ?? [])->pluck('nilai');
 
                         // Calculate averages and store them grouped by product
                         if ($excldLevyDutyValues->isNotEmpty()) {
