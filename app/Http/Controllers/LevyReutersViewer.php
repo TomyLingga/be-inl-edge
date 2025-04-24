@@ -84,7 +84,7 @@ class LevyReutersViewer extends Controller
                                 $kursValue = (object) ['value' => 0]; // Ensure it's always an object
                             }
 
-                            if ($levyDuty && $kursValue->value !== 0) {
+                            if ($levyDuty !== 0) {
                                 // Calculate marketReutersExcldLevyDuty
                                 $marketReutersExcldLevyDuty = ($marketReuters['nilai'] != 0) ? ($marketReuters['nilai'] - $levyDuty['nilai']) : 0;
 
