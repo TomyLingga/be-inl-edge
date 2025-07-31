@@ -74,6 +74,8 @@ class CpoKpbnViewer extends Controller
             ];
         }
 
+        return $data;
+
         $kurs = $this->indexPeriodKurs($tanggalAwal, $tanggalAkhir, $idMataUang);
 
         if (empty($kurs)) {
