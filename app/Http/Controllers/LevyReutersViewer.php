@@ -31,7 +31,10 @@ class LevyReutersViewer extends Controller
         if (empty($kurs)) {
             $kurs = collect([(object) ['tanggal' => null, 'value' => 0]]);
         } else {
-            $kurs = collect($kurs)->map(fn($item) => (object) $item);
+            $kurs = collect($kurs)
+                    ->filter(fn($k) => Carbon::parse($k['tanggal'])->between($tanggalAwal, $tanggalAkhir))
+                    ->map(fn($item) => (object) $item)
+                    ->values();
         }
 
         $averageKurs = round($kurs->avg('value'), 2);
